@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html data-wf-page="test" data-wf-site="test" class="md2">
+<head>
+    <meta charset="utf-8">
+    <title>Artek Mar - Widget Test</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <style>
+        /* Copy the same CSS variables from your site */
+        html {
+            --cb1: 206, 58%, 27%;
+            --cb2: 206, 55%, 41%;
+            --cb3: 205, 100%, 95%;
+            --cb4: 60, 12%, 95%;
+            --ca1: 58, 21%, 73%;
+            --ca2: 57, 33%, 87%;
+            --ca3: 0, 100%, 50%;
+            --ac: var(--ca1);
+            --fcoa: var(--cb1);
+            --multiplier: 1;
+            --size1: calc(1rem * var(--multiplier));
+            --size2: calc(2rem * var(--multiplier));
+            --size3: calc(3rem * var(--multiplier));
+        }
+
+        .md2 {
+            --bc1: var(--cb1);
+            --bc2: var(--cb2);
+            --bc3: var(--cb4);
+            --bbc1: var(--cb2);
+            --bbca: var(--ca2);
+            --fc1: var(--ca2);
+            --fc2: var(--ca2);
+            --fc4: var(--ca1), .7;
+            --fc5: var(--cb1), 1;
+            --oc1: var(--cb4), .2;
+            --ac: var(--ca2);
+            --fcoa: var(--cb1);
+        }
+
+        body {
+            margin: 0;
+            background-color: hsla(var(--bc1), 1);
+            color: hsla(var(--fc1), 1);
+            font-family: Satoshi, sans-serif;
+            padding: 20px;
+        }
+
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: hsla(var(--bc2), 1);
+            padding: var(--size3);
+            border-radius: 1rem;
+        }
+
+        .test-section {
+            background: hsla(var(--bc3), 1);
+            color: hsla(var(--cb1), 1);
+            padding: var(--size2);
+            margin: var(--size2) 0;
+            border-radius: 0.5rem;
+        }
+
+        h1, h2 {
+            color: hsla(var(--fc1), 1);
+            text-align: center;
+        }
+
+        .widget-demo {
+            border: 2px dashed hsla(var(--oc1));
+            padding: var(--size2);
+            margin: var(--size1) 0;
+            border-radius: 0.5rem;
+            background: hsla(var(--bc3), 0.5);
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .status.success { 
+            background: hsla(var(--ca1), 0.2); 
+            border: 1px solid hsla(var(--ca1), 0.5); 
+            color: hsla(var(--cb1), 1);
+        }
+
+        .status.error { 
+            background: hsla(var(--ca3), 0.2); 
+            border: 1px solid hsla(var(--ca3), 0.5); 
+            color: hsla(var(--cb1), 1);
+        }
+
+        .status.info { 
+            background: hsla(var(--cb3), 1); 
+            border: 1px solid hsla(var(--cb2), 0.5); 
+            color: hsla(var(--cb1), 1);
+        }
+
+        code {
+            background: hsla(var(--cb4), 1);
+            color: hsla(var(--cb1), 1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🏠 Artek Mar - Widget Test</h1>
+        
+        <div class="test-section">
+            <h2>📋 Instructions</h2>
+            <div class="status info">
+                <strong>Expected Result:</strong> Widget should load and display Residere information with your design system colors
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Test 1: Direct API Embed</h2>
+            <p>Testing the direct API widget embed:</p>
+            
+            <div class="widget-demo">
+                <p><strong>Widget loading from API:</strong></p>
+                <script src="https://artekmar.com/api/widget/embed.js"></script>
+            </div>
+            
+            <div class="status info">
+                <strong>Code:</strong> <code>&lt;script src="https://artekmar.com/api/widget/embed.js"&gt;&lt;/script&gt;</code>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🎨 Test 2: Custom Styled Widget</h2>
+            <p>Testing widget with custom dimensions matching Artek Mar style:</p>
+            
+            <div class="widget-demo">
+                <p><strong>Custom styled widget:</strong></p>
+                <script 
+                    src="https://artekmar.com/api/widget/embed.js"
+                    data-width="100%"
+                    data-height="500px"
+                    data-max-width="400px"
+                    data-border="2px solid hsla(206, 55%, 41%, 0.3)"
+                    data-border-radius="1rem">
+                </script>
+            </div>
+            
+            <div class="status info">
+                <strong>Code:</strong><br>
+                <code>&lt;script src="https://artekmar.com/api/widget/embed.js" data-width="100%" data-height="500px"&gt;&lt;/script&gt;</code>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📱 Test 3: In Specific Container</h2>
+            <p>Testing widget in designated container:</p>
+            
+            <div class="widget-demo">
+                <p><strong>Widget in specific div:</strong></p>
+                <div id="residere-widget" style="border: 1px solid hsla(var(--oc1)); padding: 10px; border-radius: 8px; background: hsla(var(--bc1), 0.1);"></div>
+                <script src="https://artekmar.com/api/widget/embed.js"></script>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 Troubleshooting</h2>
+            <div class="status error">
+                <strong>If widgets don't appear:</strong>
+                <ol>
+                    <li>Open Developer Tools (F12)</li>
+                    <li>Check Console for errors</li>
+                    <li>Check Network tab for failed requests</li>
+                    <li>Verify Heroku app is running</li>
+                    <li>Check CORS settings</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if widgets loaded successfully
+        setTimeout(function() {
+            const widgets = document.querySelectorAll('iframe[title="Residere Widget"]');
+            if (widgets.length > 0) {
+                console.log('✅ Found ' + widgets.length + ' widget(s) loaded successfully');
+                
+                // Add success indicator
+                const successDiv = document.createElement('div');
+                successDiv.className = 'status success';
+                successDiv.innerHTML = '✅ <strong>Success!</strong> ' + widgets.length + ' widget(s) loaded correctly.';
+                document.body.appendChild(successDiv);
+            } else {
+                console.warn('⚠️ No widgets detected. Check console for errors.');
+                
+                // Add error indicator
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'status error';
+                errorDiv.innerHTML = '❌ <strong>No widgets found.</strong> Check browser console for errors.';
+                document.body.appendChild(errorDiv);
+            }
+        }, 3000);
+
+        // Log any errors
+        window.addEventListener('error', function(e) {
+            console.error('Widget Error:', e.error);
+        });
+    </script>
+</body>
+</html> 
