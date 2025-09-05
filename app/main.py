@@ -106,7 +106,14 @@ app.add_middleware(
 
 @app.get("/")
 async def index():
-    return {"status": "working", "version": "2.0.0", "ai_system": "single_handler"}
+    """Serve the main testing interface."""
+    from fastapi.responses import FileResponse
+    import os
+    index_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    else:
+        return {"status": "working", "version": "2.0.0", "ai_system": "single_handler", "note": "index.html not found"}
 
 @app.post("/message")
 async def process_message(
