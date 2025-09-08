@@ -389,7 +389,7 @@ async def process_message(
 
         # Auto-inject missing lead if needed
         try:
-            await auto_inject_missing_lead(db, whatsapp_number, platform, body)
+            await auto_inject_missing_lead(client, db, thread_record, debounced_message)
         except Exception as e:
             logger.error(f"Error in auto-lead injection: {e}")
 
