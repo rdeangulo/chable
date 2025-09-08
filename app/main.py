@@ -384,6 +384,9 @@ async def process_message(
                 logger.info(f"Delete command received for {whatsapp_number}")
                 # Note: Full delete functionality can be implemented later
 
+        except Exception as e:
+            logger.error(f"Error storing conversation: {e}")
+
         # Auto-inject missing lead if needed
         try:
             await auto_inject_missing_lead(db, whatsapp_number, platform, body)
