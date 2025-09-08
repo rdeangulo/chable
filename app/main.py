@@ -311,7 +311,7 @@ async def process_message(
             response = ""
         else:
             # Process message through new AI handler
-            response = await ai_handler.process_message(debounced_message, model_speed="balanced")
+            response = ai_handler.process_message(debounced_message, model_speed="balanced")
 
             media_url, media_type, cleaned_message = extract_media_from_response(
                 response
@@ -449,7 +449,7 @@ async def process_web_widget_message(
         sender_info = {"number": visitor_id, "platform": platform}
 
         # Process message through new AI handler
-        response = await ai_handler.process_message(body, model_speed="balanced")
+        response = ai_handler.process_message(body, model_speed="balanced")
 
         # Store the conversation in the database
         try:
