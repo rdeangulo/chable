@@ -8,3 +8,4 @@ twilio
 httpx
 colorama
 alembic
+psycopg2-binary
