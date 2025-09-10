@@ -47,6 +47,13 @@ Enhanced city mapping to better route leads to appropriate properties:
 - Quintana Roo
 - Caribe, Caribbean
 
+**Residence Types Available:**
+- UTZ Residence (2 bedrooms, 2.5 bathrooms, 38m² pool)
+- KUXTAL Residence (3 bedrooms, 3.5 bathrooms, 38m² pool)
+- ÓOL Residence (4 bedrooms, 4.5 bathrooms, 41m² pool)
+- ÓOL Residence with Tower (4 bedrooms, 6 bathrooms, 41m² pool)
+- KIN Residence (5 bedrooms, 7 bathrooms, 127m² pool + jacuzzi)
+
 #### Costalegre - Jalisco Region
 - Costalegre
 - Guadalajara
@@ -106,7 +113,11 @@ Enhanced city mapping to better route leads to appropriate properties:
 
 ### Scenario 3: Beach Interest
 **Client**: "Quiero algo cerca de la playa"
-**Agent**: "Excelente elección. **Yucatán** en la Riviera Maya es perfecto para ti, con acceso directo a las mejores playas del Caribe. También tenemos **Costalegre** en Jalisco con hermosas playas del Pacífico. ¿Te interesa conocer ambos desarrollos?"
+**Agent**: "Excelente elección. **Yucatán** en la Riviera Maya es perfecto para ti, con acceso directo a las mejores playas del Caribe. Tenemos 5 tipos de residencias disponibles, desde la UTZ (2 recámaras) hasta la KIN (5 recámaras), todas con piscina privada y ka'anche's tradicionales. También tenemos **Costalegre** en Jalisco con hermosas playas del Pacífico. ¿Te interesa conocer ambos desarrollos?"
+
+### Scenario 4: Specific Residence Inquiry
+**Client**: "Me interesa una residencia grande con muchas amenidades"
+**Agent**: "Perfecto, para ti recomiendo la **KIN Residence** en Yucatán. Es nuestra residencia más exclusiva con 5 recámaras, piscina y jacuzzi de 127m², cine, spa, gimnasio, jardín en azotea y cuarto de servicio. Total de 25,469 ft² con materiales auténticos como madera tzalam y mármol Fiorito. ¿Te gustaría conocer más detalles o ver fotos?"
 
 ## CRM Integration Benefits
 

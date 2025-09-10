@@ -366,19 +366,17 @@ async def capture_customer_info(db: Session, customer_data):
             db.commit()
             logger.info(f"Enhanced existing lead {existing_lead.id} with customer info")
             
-            # Add conversation summary as note for the enhancement
+            # Inject updated lead to Lasso CRM
             try:
-                from app.utils import create_hubspot_contact, create_hubspot_note
-                summary = f"Información del cliente actualizada: {filtered_data.get('nombre', 'N/A')} - {filtered_data.get('tipo_propiedad', 'N/A')} - Presupuesto: {filtered_data.get('presupuesto_min', 'N/A')}-{filtered_data.get('presupuesto_max', 'N/A')}"
+                from app.crm_integration import inject_qualified_lead_to_crm
+                crm_result = await inject_qualified_lead_to_crm(db, existing_lead)
                 
-                # Create or update HubSpot contact
-                hubspot_contact_id = await create_hubspot_contact(filtered_data)
-                if hubspot_contact_id:
-                    # Add conversation summary as note
-                    await create_hubspot_note(hubspot_contact_id, summary)
-                    logger.info(f"Added conversation summary as note to HubSpot contact {hubspot_contact_id} for customer info update")
+                if crm_result.get("success"):
+                    logger.info(f"Successfully updated lead {existing_lead.id} in Lasso CRM")
+                else:
+                    logger.error(f"Failed to update lead {existing_lead.id} in Lasso CRM: {crm_result.get('errors')}")
             except Exception as e:
-                logger.error(f"Failed to add note to HubSpot contact: {e}")
+                logger.error(f"Error updating lead in Lasso CRM: {e}")
         else:
             # Create new qualified lead with the customer info
             # QualifiedLead is imported at module level; avoid re-importing inside the function to prevent scope issues
@@ -410,19 +408,17 @@ async def capture_customer_info(db: Session, customer_data):
             db.commit()
             logger.info(f"Created new qualified lead from customer info capture")
             
-            # Add conversation summary as note for new lead creation
+            # Inject new lead to Lasso CRM
             try:
-                from app.utils import create_hubspot_contact, create_hubspot_note
-                summary = f"Lead creado por captura de información: {final_name} - {filtered_data.get('tipo_propiedad', 'N/A')} - Presupuesto: {filtered_data.get('presupuesto_min', 'N/A')}-{filtered_data.get('presupuesto_max', 'N/A')}"
+                from app.crm_integration import inject_qualified_lead_to_crm
+                crm_result = await inject_qualified_lead_to_crm(db, new_lead)
                 
-                # Create HubSpot contact
-                hubspot_contact_id = await create_hubspot_contact(filtered_data)
-                if hubspot_contact_id:
-                    # Add conversation summary as note
-                    await create_hubspot_note(hubspot_contact_id, summary)
-                    logger.info(f"Added conversation summary as note to HubSpot contact {hubspot_contact_id} for new lead creation")
+                if crm_result.get("success"):
+                    logger.info(f"Successfully injected new lead {new_lead.id} to Lasso CRM")
+                else:
+                    logger.error(f"Failed to inject new lead {new_lead.id} to Lasso CRM: {crm_result.get('errors')}")
             except Exception as e:
-                logger.error(f"Failed to add note to HubSpot contact: {e}")
+                logger.error(f"Error injecting new lead to Lasso CRM: {e}")
 
         # Removed redundant extra HubSpot sync to avoid duplicate create calls
 
@@ -543,30 +539,17 @@ async def qualify_lead(db: Session, lead_data):
             elif lead_data.get("motivo") == "llamada":
                 summary = f"Cliente solicita llamada. Urgencia: {lead_data.get('urgencia', 'N/A')}"
             
-            # Update HubSpot contact with new information
+            # Update lead in Lasso CRM
             try:
-                from app.utils import create_hubspot_contact, create_hubspot_note
-                hubspot_data = {
-                    "nombre": existing_lead.nombre,
-                    "email": existing_lead.email,
-                    "telefono": existing_lead.telefono,
-                    "fuente": existing_lead.fuente,
-                    "motivo_interes": existing_lead.motivo_interes,
-                    "urgencia_compra": existing_lead.urgencia_compra
-                }
-                contact_id = await create_hubspot_contact(hubspot_data)
-                if contact_id:
-                    logger.info(f"Updated HubSpot contact {contact_id} with new information")
-                    
-                    # Add conversation summary as note for the update
-                    if summary:
-                        try:
-                            await create_hubspot_note(contact_id, summary)
-                            logger.info(f"Added conversation summary as note to HubSpot contact {contact_id} for update")
-                        except Exception as e:
-                            logger.error(f"Failed to add note to HubSpot contact {contact_id}: {e}")
+                from app.crm_integration import inject_qualified_lead_to_crm
+                crm_result = await inject_qualified_lead_to_crm(db, existing_lead)
+                
+                if crm_result.get("success"):
+                    logger.info(f"Successfully updated lead {existing_lead.id} in Lasso CRM")
+                else:
+                    logger.error(f"Failed to update lead {existing_lead.id} in Lasso CRM: {crm_result.get('errors')}")
             except Exception as e:
-                logger.error(f"Failed to update HubSpot contact: {e}")
+                logger.error(f"Error updating lead in Lasso CRM: {e}")
             
             return {
                 "success": True,
@@ -606,49 +589,36 @@ async def qualify_lead(db: Session, lead_data):
         db.add(new_lead)
         db.commit()
 
-        # Get the thread record for this lead
-        thread_record = db.query(Thread).filter_by(sender=lead_data.get("telefono")).first()
-        if thread_record:
-            try:
-                from app.utils import create_hubspot_contact
-                # Use the lead data that was already validated with strict detection
-                # No need to re-analyze since we already confirmed explicit interest
-                
-                # Generate more descriptive conversation summary
-                summary = f"Lead calificado automáticamente con interés explícito: {lead_data.get('motivo_interes', 'N/A')}"
-                if lead_data.get("motivo_interes") == "disponibilidad":
-                    summary = f"Cliente interesado en disponibilidad de apartamentos. Urgencia: {lead_data.get('urgencia_compra', 'N/A')}"
-                elif lead_data.get("motivo_interes") == "informacion":
-                    summary = f"Cliente solicita información adicional. Urgencia: {lead_data.get('urgencia_compra', 'N/A')}"
-                elif lead_data.get("motivo_interes") == "visita":
-                    summary = f"Cliente solicita visita al proyecto. Urgencia: {lead_data.get('urgencia_compra', 'N/A')}"
-                elif lead_data.get("motivo_interes") == "llamada":
-                    summary = f"Cliente solicita llamada. Urgencia: {lead_data.get('urgencia_compra', 'N/A')}"
-                
-                interest_score = 85  # High score since we only inject explicit interest
-                
-                new_lead.conversation_summary = summary
-                new_lead.deducted_interest = interest_score
-                db.commit()
+        # Generate more descriptive conversation summary
+        summary = f"Lead calificado automáticamente con interés explícito: {lead_data.get('motivo_interes', 'N/A')}"
+        if lead_data.get("motivo_interes") == "disponibilidad":
+            summary = f"Cliente interesado en disponibilidad de apartamentos. Urgencia: {lead_data.get('urgencia_compra', 'N/A')}"
+        elif lead_data.get("motivo_interes") == "informacion":
+            summary = f"Cliente solicita información adicional. Urgencia: {lead_data.get('urgencia_compra', 'N/A')}"
+        elif lead_data.get("motivo_interes") == "visita":
+            summary = f"Cliente solicita visita al proyecto. Urgencia: {lead_data.get('urgencia_compra', 'N/A')}"
+        elif lead_data.get("motivo_interes") == "llamada":
+            summary = f"Cliente solicita llamada. Urgencia: {lead_data.get('urgencia_compra', 'N/A')}"
+        
+        interest_score = 85  # High score since we only inject explicit interest
+        
+        new_lead.conversation_summary = summary
+        new_lead.deducted_interest = interest_score
+        db.commit()
 
-                extra_props = {
-                    "conversation_summary": summary,
-                    "interest_score": str(interest_score),
-                }
-                contact_id = await create_hubspot_contact(lead_data, extra_properties=extra_props)
-                
-                # Create a note with the conversation summary
-                if contact_id and summary:
-                    try:
-                        from app.utils import create_hubspot_note
-                        await create_hubspot_note(contact_id, summary)
-                        logger.info(f"Added conversation summary as note to HubSpot contact {contact_id}")
-                    except Exception as e:
-                        logger.error(f"Failed to add note to HubSpot contact {contact_id}: {e}")
+        # Inject to Lasso CRM automatically
+        try:
+            from app.crm_integration import inject_qualified_lead_to_crm
+            crm_result = await inject_qualified_lead_to_crm(db, new_lead)
+            
+            if crm_result.get("success"):
+                logger.info(f"Successfully injected lead {new_lead.id} to Lasso CRM")
+            else:
+                logger.error(f"Failed to inject lead {new_lead.id} to Lasso CRM: {crm_result.get('errors')}")
+        except Exception as e:
+            logger.error(f"Error injecting lead to Lasso CRM: {e}")
 
-                logger.info(f"Updated lead analysis for lead ID {new_lead.id}")
-            except Exception as e:
-                logger.error(f"Error in conversation analysis: {e}")
+        logger.info(f"Updated lead analysis for lead ID {new_lead.id}")
 
         # Define next steps based on lead preferences
         next_steps = ""

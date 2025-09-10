@@ -14,37 +14,56 @@ logger = logging.getLogger(__name__)
 class LassoCRMService:
     """Service class for Lasso CRM operations and lead injection."""
     
-    # Property mapping with their Lasso CRM IDs
+    # Property mapping with their Lasso CRM IDs and API keys
     PROPERTY_MAPPING = {
         "costalegre": {
             "id": 24609,
             "name": "Costalegre",
-            "display_name": "Costalegre"
+            "display_name": "Costalegre",
+            "api_key_env": "LASSO_API_KEY_COSTALEGRE"
         },
         "residencias": {
             "id": 24608,
             "name": "Residencias",
-            "display_name": "Residencias"
+            "display_name": "Residencias",
+            "api_key_env": "LASSO_API_KEY_RESIDENCIAS"
         },
         "valle_de_guadalupe": {
             "id": 24611,
             "name": "Valle de Guadalupe",
-            "display_name": "Valle de Guadalupe"
+            "display_name": "Valle de Guadalupe",
+            "api_key_env": "LASSO_API_KEY_VALLE_DE_GUADALUPE"
         },
         "yucatan": {
             "id": 24610,
             "name": "Yucatan",
-            "display_name": "Yucatan"
+            "display_name": "Yucatan",
+            "api_key_env": "LASSO_API_KEY_YUCATAN"
         }
     }
     
     def __init__(self):
         """Initialize Lasso CRM client and configuration."""
-        self.api_key = os.getenv("LASSO_API_KEY")
         self.base_url = "https://api.lasso.com"  # Update with actual Lasso API URL
         
-        if not self.api_key:
-            logger.warning("LASSO_API_KEY environment variable not set")
+        # Get LASSO UID (organization/account identifier)
+        self.lasso_uid = os.getenv("LASSO_UID")
+        if not self.lasso_uid:
+            logger.warning("LASSO_UID environment variable not set")
+        
+        # Check which properties have API keys configured
+        self.configured_properties = {}
+        for property_key, property_info in self.PROPERTY_MAPPING.items():
+            api_key = os.getenv(property_info["api_key_env"])
+            if api_key:
+                self.configured_properties[property_key] = {
+                    "api_key": api_key,
+                    "property_info": property_info
+                }
+            else:
+                logger.warning(f"API key not configured for property {property_key} ({property_info['api_key_env']})")
+        
+        logger.info(f"Lasso CRM initialized with UID: {self.lasso_uid} and {len(self.configured_properties)} configured properties")
     
     def get_property_info(self, property_key: str) -> Optional[Dict[str, Any]]:
         """
@@ -58,9 +77,35 @@ class LassoCRMService:
         """
         return self.PROPERTY_MAPPING.get(property_key.lower())
     
+    def get_property_api_key(self, property_key: str) -> Optional[str]:
+        """
+        Get API key for a specific property.
+        
+        Args:
+            property_key: Property identifier
+            
+        Returns:
+            API key string or None if not configured
+        """
+        if property_key in self.configured_properties:
+            return self.configured_properties[property_key]["api_key"]
+        return None
+    
+    def is_property_configured(self, property_key: str) -> bool:
+        """
+        Check if a property has API key configured.
+        
+        Args:
+            property_key: Property identifier
+            
+        Returns:
+            True if property is configured, False otherwise
+        """
+        return property_key in self.configured_properties
+    
     def get_all_properties(self) -> List[Dict[str, Any]]:
-        """Get all available properties."""
-        return list(self.PROPERTY_MAPPING.values())
+        """Get all configured properties."""
+        return [prop_config["property_info"] for prop_config in self.configured_properties.values()]
     
     def normalize_phone_number(self, phone: str) -> str:
         """
@@ -114,6 +159,7 @@ class LassoCRMService:
         
         # Prepare lead data according to Lasso CRM format
         lead_data = {
+            "lasso_uid": self.lasso_uid,  # Organization/account identifier
             "property_id": property_info["id"],
             "property_name": property_info["name"],
             "contact": {
@@ -169,8 +215,10 @@ class LassoCRMService:
         Returns:
             Lead ID if successful, None otherwise
         """
-        if not self.api_key:
-            logger.error("LASSO_API_KEY not configured")
+        # Get API key for this specific property
+        api_key = self.get_property_api_key(property_key)
+        if not api_key:
+            logger.error(f"API key not configured for property {property_key}")
             return None
         
         try:
@@ -181,7 +229,7 @@ class LassoCRMService:
             endpoint = f"{self.base_url}/api/v1/leads"
             
             headers = {
-                "Authorization": f"Bearer {self.api_key}",
+                "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
                 "Accept": "application/json"
             }
@@ -221,8 +269,10 @@ class LassoCRMService:
         Returns:
             True if successful, False otherwise
         """
-        if not self.api_key:
-            logger.error("LASSO_API_KEY not configured")
+        # Get API key for this specific property
+        api_key = self.get_property_api_key(property_key)
+        if not api_key:
+            logger.error(f"API key not configured for property {property_key}")
             return False
         
         try:
@@ -233,7 +283,7 @@ class LassoCRMService:
             endpoint = f"{self.base_url}/api/v1/leads/{lead_id}"
             
             headers = {
-                "Authorization": f"Bearer {self.api_key}",
+                "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
                 "Accept": "application/json"
             }
@@ -258,20 +308,47 @@ class LassoCRMService:
             logger.error(f"Error updating Lasso CRM lead: {e}")
             return False
     
-    async def search_lead(self, phone: str, email: str = None) -> Optional[Dict[str, Any]]:
+    async def search_lead(self, phone: str, email: str = None, property_key: str = None) -> Optional[Dict[str, Any]]:
         """
         Search for existing lead in Lasso CRM.
         
         Args:
             phone: Phone number to search
             email: Email to search (optional)
+            property_key: Property to search in (optional, searches all if None)
             
         Returns:
             Lead data if found, None otherwise
         """
-        if not self.api_key:
-            logger.error("LASSO_API_KEY not configured")
-            return None
+        # If property_key is specified, search only in that property
+        if property_key:
+            api_key = self.get_property_api_key(property_key)
+            if not api_key:
+                logger.error(f"API key not configured for property {property_key}")
+                return None
+            return await self._search_lead_in_property(phone, email, property_key, api_key)
+        
+        # If no property specified, search in all configured properties
+        for prop_key, prop_config in self.configured_properties.items():
+            result = await self._search_lead_in_property(phone, email, prop_key, prop_config["api_key"])
+            if result:
+                return result
+        
+        return None
+    
+    async def _search_lead_in_property(self, phone: str, email: str, property_key: str, api_key: str) -> Optional[Dict[str, Any]]:
+        """
+        Search for lead in a specific property.
+        
+        Args:
+            phone: Phone number to search
+            email: Email to search (optional)
+            property_key: Property identifier
+            api_key: API key for the property
+            
+        Returns:
+            Lead data if found, None otherwise
+        """
         
         try:
             # Normalize phone number
@@ -281,14 +358,16 @@ class LassoCRMService:
             endpoint = f"{self.base_url}/api/v1/leads/search"
             
             headers = {
-                "Authorization": f"Bearer {self.api_key}",
+                "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
                 "Accept": "application/json"
             }
             
             # Search criteria
             search_criteria = {
-                "phone": normalized_phone
+                "lasso_uid": self.lasso_uid,  # Organization identifier
+                "phone": normalized_phone,
+                "property_id": self.PROPERTY_MAPPING[property_key]["id"]
             }
             
             if email:
@@ -312,10 +391,10 @@ class LassoCRMService:
                 return None
                 
         except httpx.HTTPStatusError as e:
-            logger.error(f"Lasso CRM search error: {e.response.status_code} - {e.response.text}")
+            logger.error(f"Lasso CRM search error for property {property_key}: {e.response.status_code} - {e.response.text}")
             return None
         except Exception as e:
-            logger.error(f"Error searching Lasso CRM lead: {e}")
+            logger.error(f"Error searching Lasso CRM lead in property {property_key}: {e}")
             return None
     
     async def create_or_update_lead(self, customer_data: Dict[str, Any], property_key: str) -> Optional[str]:
@@ -330,11 +409,11 @@ class LassoCRMService:
             Lead ID if successful, None otherwise
         """
         try:
-            # First, try to find existing lead
+            # First, try to find existing lead in this specific property
             phone = customer_data.get("telefono", "")
             email = customer_data.get("email", "")
             
-            existing_lead = await self.search_lead(phone, email)
+            existing_lead = await self.search_lead(phone, email, property_key)
             
             if existing_lead:
                 # Update existing lead
@@ -377,13 +456,13 @@ class LassoCRMService:
     
     def validate_property_key(self, property_key: str) -> bool:
         """
-        Validate if property key exists.
+        Validate if property key exists and is configured.
         
         Args:
             property_key: Property identifier
             
         Returns:
-            True if valid, False otherwise
+            True if valid and configured, False otherwise
         """
-        return property_key.lower() in self.PROPERTY_MAPPING
+        return property_key.lower() in self.configured_properties
 

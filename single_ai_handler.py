@@ -184,6 +184,9 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
         
         PROPIEDADES DISPONIBLES (4 desarrollos exclusivos):
         - YUCATÁN (ENFOQUE PRINCIPAL) - Riviera Maya, México
+          * 5 tipos de residencias: UTZ, KUXTAL, ÓOL, ÓOL WITH TOWER, KIN
+          * Materiales auténticos: madera tzalam, mármol Fiorito, piedra natural
+          * Amenidades: piscina privada, ka'anche's, terraza, spa, gimnasio
         - Valle de Guadalupe - Baja California, México
         - Costalegre - Jalisco, México
         - Residencias - Ubicación general
@@ -200,7 +203,64 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
         - capture_customer_info: Capturar información del cliente
         - send_brochure: Enviar folletos
         
-        CONTEXTO: Ayudas a clientes a encontrar propiedades en nuestros 4 desarrollos exclusivos, con enfoque principal en Yucatán."""
+        CONTEXTO: Ayudas a clientes a encontrar propiedades en nuestros 4 desarrollos exclusivos, con enfoque principal en Yucatán.
+        
+        INFORMACIÓN DETALLADA DE YUCATÁN:
+        Las Residencias Chablé Yucatán son refugios en los ritmos de la naturaleza, creadas como obras maestras de autenticidad y artesanía. Integran materiales locales que se armonizan perfectamente con el entorno natural.
+        
+        TIPOS DE RESIDENCIAS DISPONIBLES:
+        1. UTZ RESIDENCE (2 recámaras)
+           - Recámara principal y recámara doble
+           - 2.5 baños, cocina abierta, bar
+           - Patio con ka'anche's privado
+           - Piscina de 38 m²
+           - Total: 5,498.79 ft² / 510.91 m²
+        
+        2. KUXTAL RESIDENCE (3 recámaras)
+           - Recámara principal y 2 recámaras dobles
+           - 3.5 baños, cocina abierta, bar, sala de TV
+           - Patio con ka'anche's privado
+           - Piscina de 38 m²
+           - Cuarto de servicio
+           - Total: 6,953.64 ft² / 645.84 m²
+        
+        3. ÓOL RESIDENCE (4 recámaras)
+           - Recámara principal y 3 recámaras dobles
+           - 4.5 baños, cocina abierta, bar, sala de TV
+           - Patio con ka'anche's privado
+           - Piscina de 41 m²
+           - Cuarto de servicio
+           - Total: 25,469.86 ft² / 2,366.23 m²
+        
+        4. ÓOL RESIDENCE WITH TOWER (4 recámaras)
+           - Recámara principal y 3 recámaras dobles
+           - 4 baños completos y 2 medios baños
+           - Cocina abierta, bar, sala de TV
+           - Patio con ka'anche's privado
+           - Piscina de 41 m²
+           - Opción de cine, spa o gimnasio
+           - Jardín en azotea
+           - Cuarto de servicio
+           - Total: 10,375.82 ft² / 963.98 m²
+        
+        5. KIN RESIDENCE (5 recámaras)
+           - Recámara principal, 2 recámaras dobles, 2 recámaras gemelas
+           - 4 baños completos y 3 medios baños
+           - Cocina abierta, bar, patio central
+           - Patio con ka'anche's privado
+           - Piscina y jacuzzi de 127 m²
+           - Cine, spa, gimnasio
+           - Jardín en azotea
+           - Cuarto de servicio
+           - Total: 25,469.86 ft² / 2,366.23 m²
+        
+        CARACTERÍSTICAS ESPECIALES:
+        - Materiales auténticos: madera tzalam y camarú, mármol Fiorito
+        - Fachadas de piedra natural y chukum
+        - Ventanas de vidrio extra-claro
+        - Ka'anche's tradicionales mayas
+        - Experiencia de bienestar holística
+        - Conexión profunda con la tierra y tradiciones locales"""
     
     def select_model(self, speed: str = "balanced") -> str:
         """

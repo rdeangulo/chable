@@ -16,9 +16,9 @@ class CRMManager:
     def __init__(self):
         """Initialize CRM manager with Lasso service."""
         self.lasso_service = LassoCRMService()
-        self.lasso_enabled = bool(os.getenv("LASSO_API_KEY"))
+        self.lasso_enabled = len(self.lasso_service.configured_properties) > 0
         
-        logger.info(f"CRM Manager initialized - Lasso: {self.lasso_enabled}")
+        logger.info(f"CRM Manager initialized - Lasso: {self.lasso_enabled} ({len(self.lasso_service.configured_properties)} properties configured)")
     
     def get_available_properties(self) -> List[Dict[str, Any]]:
         """Get all available properties from Lasso CRM."""
@@ -82,18 +82,25 @@ class CRMManager:
         
         # Inject to Lasso CRM
         if self.lasso_enabled:
-            try:
-                lasso_result = await self._inject_to_lasso(enhanced_customer_data, property_key)
-                results["lasso"] = lasso_result
-                if lasso_result.get("success"):
-                    results["success"] = True
-            except Exception as e:
-                error_msg = f"Lasso CRM injection error: {str(e)}"
+            # Check if this specific property is configured
+            if self.lasso_service.is_property_configured(property_key):
+                try:
+                    lasso_result = await self._inject_to_lasso(enhanced_customer_data, property_key)
+                    results["lasso"] = lasso_result
+                    if lasso_result.get("success"):
+                        results["success"] = True
+                except Exception as e:
+                    error_msg = f"Lasso CRM injection error for property {property_key}: {str(e)}"
+                    logger.error(error_msg)
+                    results["errors"].append(error_msg)
+                    results["lasso"] = {"success": False, "error": error_msg}
+            else:
+                error_msg = f"Property {property_key} is not configured in Lasso CRM (API key not set)"
                 logger.error(error_msg)
                 results["errors"].append(error_msg)
                 results["lasso"] = {"success": False, "error": error_msg}
         else:
-            error_msg = "Lasso CRM is not configured (LASSO_API_KEY not set)"
+            error_msg = "Lasso CRM is not configured (no API keys set for any property)"
             logger.error(error_msg)
             results["errors"].append(error_msg)
         
@@ -179,8 +186,21 @@ class CRMManager:
     
     def get_crm_status(self) -> Dict[str, Any]:
         """Get status of Lasso CRM service."""
+        configured_properties = []
+        for prop_key, prop_config in self.lasso_service.configured_properties.items():
+            configured_properties.append({
+                "key": prop_key,
+                "name": prop_config["property_info"]["name"],
+                "display_name": prop_config["property_info"]["display_name"],
+                "id": prop_config["property_info"]["id"],
+                "api_key_env": prop_config["property_info"]["api_key_env"]
+            })
+        
         return {
             "lasso_enabled": self.lasso_enabled,
+            "lasso_uid": self.lasso_service.lasso_uid,
+            "configured_properties": configured_properties,
+            "total_configured_properties": len(configured_properties),
             "available_properties": self.get_available_properties(),
             "total_properties": len(self.get_available_properties())
         }

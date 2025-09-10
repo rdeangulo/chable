@@ -2,49 +2,35 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from app.db import get_db
-from app.utils import create_hubspot_contact, logger
+from app.utils import logger
 from app.models import Thread, CustomerInfo, QualifiedLead, Conversation
 import asyncio
 import os
 
 router = APIRouter()
 
-@router.get("/test/hubspot")
-async def test_hubspot_integration(db: Session = Depends(get_db)):
+@router.get("/test/lasso")
+async def test_lasso_integration(db: Session = Depends(get_db)):
     """
-    Test endpoint for HubSpot integration.
-    Creates a test contact in HubSpot and returns the result.
+    Test endpoint for Lasso CRM integration.
+    Tests the connection to Lasso CRM.
     """
-    # Test data
-    test_customer = {
-        "nombre": "Test Customer",
-        "email": "test@example.com",
-        "telefono": "+1234567890",
-        "fuente": "Test",
-        "ciudad_interes": "Test City",
-        "tipo_propiedad": "Test Property",
-        "presupuesto": "Test Budget"
-    }
-    
     try:
-        # Try to create a contact
-        contact_id = await create_hubspot_contact(test_customer)
+        from app.services.crm_manager import CRMManager
+        crm_manager = CRMManager()
         
-        if contact_id:
-            return {
-                "success": True,
-                "message": f"Successfully created HubSpot contact with ID: {contact_id}",
-                "contact_id": contact_id
-            }
-        else:
-            return {
-                "success": False,
-                "message": "Failed to create HubSpot contact"
-            }
+        # Test CRM status
+        status = crm_manager.get_crm_status()
+        
+        return {
+            "success": True,
+            "message": "Lasso CRM integration test successful",
+            "data": status
+        }
     except Exception as e:
         return {
             "success": False,
-            "message": f"Error testing HubSpot integration: {str(e)}"
+            "message": f"Error testing Lasso CRM integration: {str(e)}"
         }
 
 

@@ -6,7 +6,7 @@ This system provides comprehensive CRM integration for 4 different properties us
 
 ## Properties Supported
 
-**Note**: "Residencias" is the default project for leads that haven't defined a specific project interest. The other projects are assigned to their specific CRMs.
+**Note**: "Residencias" is the default project for leads that haven't defined a specific project interest. Each property requires its own API key configuration.
 
 | Property | Key | Lasso ID | Display Name |
 |----------|-----|----------|--------------|
@@ -17,13 +17,32 @@ This system provides comprehensive CRM integration for 4 different properties us
 
 ## Environment Variables
 
-Add the following environment variable to your `.env` file or Render configuration:
+Add the following environment variables to your `.env` file or Render configuration. **You need both the LASSO UID and property-specific API keys**:
 
 ```bash
-LASSO_API_KEY=your_lasso_api_key_here
+# Lasso CRM Organization/Account Identifier
+LASSO_UID=your_lasso_organization_uid_here
+
+# Yucatan Property API Key
+LASSO_API_KEY_YUCATAN=your_yucatan_lasso_api_key_here
+
+# Costalegre Property API Key
+LASSO_API_KEY_COSTALEGRE=your_costalegre_lasso_api_key_here
+
+# Valle de Guadalupe Property API Key
+LASSO_API_KEY_VALLE_DE_GUADALUPE=your_valle_guadalupe_lasso_api_key_here
+
+# Residencias Property API Key (Default for general leads)
+LASSO_API_KEY_RESIDENCIAS=your_residencias_lasso_api_key_here
 ```
 
-**Note**: Only Lasso CRM is supported. HubSpot integration has been removed.
+**Important Notes**:
+- **LASSO_UID** is your organization/account identifier in Lasso CRM (required)
+- Each property has its own API key in Lasso CRM
+- You only need to set the API keys for properties you want to use
+- If a property API key is not set, leads for that property will not be injected to CRM
+- "Residencias" is the default property for leads that haven't defined a specific project interest
+- The LASSO_UID is included in all API calls to identify your organization
 
 ## API Endpoints
 
@@ -132,6 +151,12 @@ The CRM integration is automatically triggered when:
 2. **Customer Info Capture**: When customer information is captured
 3. **Auto Lead Injection**: When leads are automatically detected and injected
 
+**Property-Specific Routing**:
+- The system automatically determines which property the lead is interested in
+- Uses the corresponding API key for that specific property
+- If no specific property is determined, defaults to "Residencias" (general leads)
+- Only properties with configured API keys will receive lead injections
+
 ## Usage Examples
 
 ### Python Integration
@@ -221,16 +246,28 @@ Use the test endpoints to verify your integration:
 
 ### Common Issues
 
-1. **"LASSO_API_KEY not configured"**
-   - Add `LASSO_API_KEY` to your environment variables
+1. **"LASSO_UID environment variable not set"**
+   - Add `LASSO_UID=your_organization_uid_here` to your environment variables
+   - This is your organization/account identifier in Lasso CRM
 
-2. **"Invalid property key"**
+2. **"API key not configured for property X"**
+   - Add the specific property API key to your environment variables
+   - Example: `LASSO_API_KEY_YUCATAN=your_api_key_here`
+
+3. **"Property X is not configured in Lasso CRM"**
+   - The property API key is missing from your environment variables
+   - Check that you have the correct API key for that specific property
+
+4. **"Invalid property key"**
    - Use one of the valid property keys: `costalegre`, `residencias`, `valle_de_guadalupe`, `yucatan`
+   - Make sure the property has an API key configured
 
-3. **"Lasso CRM injection failed"**
-   - Check your Lasso API key validity
+5. **"Lasso CRM injection failed"**
+   - Check your LASSO_UID is correct
+   - Check your property-specific Lasso API key validity
    - Verify network connectivity
    - Check Lasso CRM API documentation for any changes
+   - Ensure the API key has the correct permissions for that property
 
 ### Debug Mode
 
