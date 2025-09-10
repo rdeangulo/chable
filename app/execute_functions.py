@@ -669,13 +669,8 @@ def cargar_base_fotos() -> Dict[str, Any]:
         if os.path.exists(FOTOS_JSON_PATH):
             with open(FOTOS_JSON_PATH, "r", encoding="utf-8") as file:
                 data = json.load(file)
-                # Clean text fields in the loaded data
-                if isinstance(data, list):
-                    for item in data:
-                        if isinstance(item, dict):
-                            for key, value in item.items():
-                                if isinstance(value, str):
-                                    item[key] = clean_text(value)
+                logger.info(f"Base de datos de fotos cargada exitosamente desde: {FOTOS_JSON_PATH}")
+                logger.info(f"Residencias disponibles: {list(data.get('residencias', {}).keys())}")
                 return data
         else:
             logger.error(f"Archivo de fotos no encontrado: {FOTOS_JSON_PATH}")
@@ -741,13 +736,13 @@ def enviar_foto(
     buscar_alternativa: bool = True
 ) -> Dict[str, Any]:
     """
-    Envía una foto del proyecto Artek Mar al usuario según los parámetros especificados.
+    Envía una foto de las residencias de Chablé al usuario según los parámetros especificados.
     
     Args:
-        categoria (str): Categoría principal de la foto ('interior', 'exterior', 'planos', 'vistas', 'amenidades', 'tipos_apartamento')
-        subcategoria (str, optional): Especificación dentro de la categoría (ej: 'lobby' para amenidades, 'mar_caribe' para vistas)
-        tipo_apartamento (str, optional): Tipo de apartamento ('crisol', 'altista', 'vistal')
-        area (str, optional): Área específica del apartamento (ej: 'sala', 'cocina', 'habitacion_principal')
+        categoria (str): Categoría principal de la foto ('interior', 'exterior', 'planos', 'amenidades')
+        subcategoria (str, optional): Especificación dentro de la categoría (ej: 'sala', 'cocina', 'piscina')
+        tipo_apartamento (str, optional): Tipo de residencia ('kin', 'kuxtal', 'ool', 'ool_torre', 'utz')
+        area (str, optional): Área específica de la residencia (ej: 'sala', 'cocina', 'recamara_principal')
         mensaje_acompañante (str, optional): Mensaje personalizado que acompaña a la foto
         buscar_alternativa (bool): Si es True y no encuentra la foto exacta, buscará alternativas similares
         
@@ -772,192 +767,97 @@ def enviar_foto(
             
         # Diccionario de mensajes predeterminados por categoría
         mensajes_predeterminados = {
-            "exterior": "¡Bienvenido a Artek Mar, donde la vida se ve mejor! Aquí puedes apreciar la impresionante arquitectura de nuestro proyecto.",
-            "vistas": "Esta es la increíble vista que disfrutarás desde tu apartamento en Artek Mar.",
-            "amenidades": "En Artek Mar te ofrecemos amenidades de primer nivel para una experiencia de vida excepcional.",
-            "interior": "Espacios diseñados pensando en tu comodidad y estilo de vida.",
-            "planos": "Plano detallado para que visualices la distribución de espacios en tu futuro hogar.",
-            "tipos_apartamento": "Nuestros apartamentos están diseñados para maximizar la comodidad, luz natural y vistas."
+            "exterior": "¡Bienvenido a Residencias Chablé! Aquí puedes apreciar la impresionante arquitectura de nuestras residencias.",
+            "interior": "Espacios diseñados pensando en tu comodidad y estilo de vida en Chablé.",
+            "planos": "Plano detallado para que visualices la distribución de espacios en tu futura residencia.",
+            "amenidades": "En Chablé te ofrecemos amenidades de primer nivel para una experiencia de vida excepcional."
         }
         
-        # Buscar la foto según los parámetros
+        # Buscar la foto según los parámetros en la nueva estructura de residencias
         url_foto = None
         caption = None
         
-        # Create a scoring system to find the best photo match
-        scored_photos = []
+        # Obtener las residencias disponibles
+        residencias = fotos_db.get("residencias", {})
+        if not residencias:
+            return {
+                "success": False,
+                "error": "No se encontraron residencias en la base de datos de fotos"
+            }
         
-        for photo in fotos_db:
-            score = 0
-            zona = photo.get("zona", "").lower()
-            display_name = photo.get("display_name", "").lower()
-            tipo = photo.get("tipo", "").lower()
-            
-            # Skip empty or invalid photos
-            if not photo.get("public_link") or not zona:
-                continue
-            
-            # Category-based scoring
-            if categoria == "planos":
-                if tipo == "plano":
-                    score += 100  # Perfect match for planos
-                else:
-                    continue  # Skip non-plano items for planos category
-                    
-            elif categoria == "interior":
-                if tipo == "foto":
-                    # Look for interior-related keywords
-                    interior_keywords = ["sala", "cocina", "comedor", "cuarto", "baño", "estudio", "hall", "habitacion", "alcoba"]
-                    if any(keyword in zona for keyword in interior_keywords):
-                        score += 50
-                    if any(keyword in display_name for keyword in interior_keywords):
-                        score += 30
-                        
-            elif categoria == "exterior":
-                if tipo == "foto":
-                    exterior_keywords = ["fachada", "frontal", "exterior", "vista", "terraza", "balcon"]
-                    if any(keyword in zona for keyword in exterior_keywords):
-                        score += 50
-                    if any(keyword in display_name for keyword in exterior_keywords):
-                        score += 30
-                        
-            elif categoria == "amenidades":
-                if tipo == "foto":
-                    amenidad_keywords = ["piscina", "gimnasio", "business", "lobby", "zona", "social", "bbq", "terraza", "infantil", "juegos"]
-                    if any(keyword in zona for keyword in amenidad_keywords):
-                        score += 50
-                    if any(keyword in display_name for keyword in amenidad_keywords):
-                        score += 30
-                        
-            elif categoria == "vistas":
-                if tipo == "foto":
-                    vista_keywords = ["vista", "cienaga", "mar", "parque"]
-                    if any(keyword in zona for keyword in vista_keywords):
-                        score += 50
-                    if any(keyword in display_name for keyword in vista_keywords):
-                        score += 30
-                        
-            elif categoria == "tipos_apartamento":
-                if tipo == "foto" and tipo_apartamento:
-                    tipo_keywords = {
-                        "crisol": ["crisol"],
-                        "altista": ["altista"], 
-                        "vistal": ["vistal"],
-                        # Also map common apartment types found in data
-                        "indigo": ["índigo", "indigo"],
-                        "ocre": ["ocre"],
-                        "malva": ["malva"]
-                    }
-                    
-                    # Check if the requested apartment type matches
-                    search_keywords = tipo_keywords.get(tipo_apartamento.lower(), [tipo_apartamento.lower()])
-                    for keyword in search_keywords:
-                        if keyword in zona or keyword in display_name:
-                            score += 70
-                            
-                    # Also consider generic apartment keywords
-                    if "apto" in zona or "apartamento" in zona:
-                        score += 30
-            
-            # Area-specific scoring (this is key for variation!)
-            if area:
-                area_mappings = {
-                    "sala": ["sala", "social", "comedor"],
-                    "cocina": ["cocina"],
-                    "comedor": ["comedor", "sala"],
-                    "habitacion_principal": ["cuarto", "principal", "ppal", "master"],
-                    "habitacion_secundaria": ["cuarto2", "secundaria", "cuarto"],
-                    "habitacion_terciaria": ["cuarto3", "terciaria"],
-                    "estudio": ["estudio"],
-                    "balcon": ["balcon", "terraza"],
-                    "baño": ["baño", "bano"]
-                }
+        # Determinar qué residencia buscar
+        residencia_target = None
+        if tipo_apartamento:
+            # Mapear nombres de residencias
+            residencia_mapping = {
+                "kin": "kin",
+                "kuxtal": "kuxtal", 
+                "ool": "ool",
+                "ool_torre": "ool_torre",
+                "ool torre": "ool_torre",
+                "ool with tower": "ool_torre",
+                "utz": "utz"
+            }
+            residencia_key = residencia_mapping.get(tipo_apartamento.lower(), tipo_apartamento.lower())
+            residencia_target = residencias.get(residencia_key)
+        
+        # Si no se especifica residencia, buscar en todas
+        if not residencia_target:
+            # Buscar en todas las residencias
+            for residencia_key, residencia_data in residencias.items():
+                fotos_residencia = residencia_data.get("fotos", {})
+                categoria_fotos = fotos_residencia.get(categoria, [])
                 
-                search_terms = area_mappings.get(area.lower(), [area.lower()])
-                for term in search_terms:
-                    if term in zona:
-                        score += 80  # High score for exact area match
-                    elif term in display_name:
-                        score += 60
+                if categoria_fotos:
+                    # Tomar la primera foto de la categoría
+                    foto = categoria_fotos[0]
+                    url_foto = foto.get("url")
+                    caption = foto.get("descripcion")
+                    residencia_nombre = residencia_data.get("nombre", residencia_key)
+                    break
+        else:
+            # Buscar en la residencia específica
+            fotos_residencia = residencia_target.get("fotos", {})
+            categoria_fotos = fotos_residencia.get(categoria, [])
             
-            # Subcategoria specific scoring
-            if subcategoria:
-                if subcategoria.lower() in zona or subcategoria.lower() in display_name:
-                    score += 40
-            
-            # Only include photos with some relevance
-            if score > 0:
-                scored_photos.append((photo, score))
-        
-        # Sort by score (highest first) and select the best match
-        if scored_photos:
-            scored_photos.sort(key=lambda x: x[1], reverse=True)
-            selected_photo = scored_photos[0][0]  # Get the photo from the highest scored tuple
-            url_foto = selected_photo.get("public_link")
-            zona_name = selected_photo.get("zona", "")
-            
-            # Create appropriate caption based on what was found
-            if categoria == "planos":
-                caption = f"Plano del apartamento - {zona_name}"
-            elif area and area.lower() in zona_name.lower():
-                caption = f"Vista de {area}: {zona_name}"
-            elif tipo_apartamento and any(apt in zona_name.lower() for apt in [tipo_apartamento.lower(), "índigo", "ocre", "malva"]):
-                caption = f"Vista del apartamento: {zona_name}"
+            if categoria_fotos:
+                # Tomar la primera foto de la categoría
+                foto = categoria_fotos[0]
+                url_foto = foto.get("url")
+                caption = foto.get("descripcion")
+                residencia_nombre = residencia_target.get("nombre", tipo_apartamento)
             else:
-                caption = f"Vista {categoria}: {zona_name}"
-            
-            logger.info(f"Selected photo with score {scored_photos[0][1]}: {selected_photo.get('display_name')} - {zona_name}")
+                # Si no hay fotos en la categoría específica, buscar en otras categorías
+                for cat_key, cat_fotos in fotos_residencia.items():
+                    if cat_fotos:
+                        foto = cat_fotos[0]
+                        url_foto = foto.get("url")
+                        caption = f"Te muestro una vista de {residencia_target.get('nombre', tipo_apartamento)}"
+                        residencia_nombre = residencia_target.get("nombre", tipo_apartamento)
+                        break
         
-        # Fallback: if no good match found, try alternatives
+        # Si aún no se encuentra foto, buscar en cualquier residencia
         if not url_foto:
-            logger.info(f"Buscando foto alternativa para categoría: {categoria}")
-            
-            # Try to find any photo that matches the basic category
-            fallback_photos = []
-            for photo in fotos_db:
-                if not photo.get("public_link") or not photo.get("zona"):
-                    continue
-                    
-                zona = photo.get("zona", "").lower()
-                display_name = photo.get("display_name", "").lower()
-                tipo = photo.get("tipo", "").lower()
-                
-                # Basic category matching for fallback
-                if categoria == "tipos_apartamento" and tipo == "foto":
-                    if "apto" in zona or "apartamento" in zona or any(apt in zona for apt in ["índigo", "ocre", "malva"]):
-                        fallback_photos.append(photo)
-                elif categoria == "planos" and tipo == "plano":
-                    fallback_photos.append(photo)
-                elif categoria == "interior" and tipo == "foto":
-                    interior_keywords = ["sala", "cocina", "comedor", "cuarto", "baño", "estudio"]
-                    if any(keyword in zona for keyword in interior_keywords):
-                        fallback_photos.append(photo)
-                elif categoria in ["amenidades", "exterior", "vistas"] and tipo == "foto":
-                    fallback_photos.append(photo)
-            
-            if fallback_photos:
-                selected_photo = fallback_photos[0]
-                url_foto = selected_photo.get("public_link")
-                zona_name = selected_photo.get("zona", "")
-                caption = f"Te muestro una vista de {zona_name}. ¿Te gustaría ver más detalles de esta área o prefieres ver otra parte del proyecto?"
-                logger.info(f"Using fallback photo: {selected_photo.get('display_name')} - {zona_name}")
+            for residencia_key, residencia_data in residencias.items():
+                fotos_residencia = residencia_data.get("fotos", {})
+                for cat_key, cat_fotos in fotos_residencia.items():
+                    if cat_fotos:
+                        foto = cat_fotos[0]
+                        url_foto = foto.get("url")
+                        caption = f"Te muestro una vista de {residencia_data.get('nombre', residencia_key)}"
+                        residencia_nombre = residencia_data.get("nombre", residencia_key)
+                        break
+                if url_foto:
+                    break
         
-        # Final fallback: if still no photo found, get any available photo
         if not url_foto:
-            any_photo = next((photo for photo in fotos_db if photo.get("tipo", "").lower() == "foto" and photo.get("public_link")), None)
-            if any_photo:
-                url_foto = any_photo.get("public_link")
-                zona_name = any_photo.get("zona", "")
-                caption = f"Te muestro una vista de {zona_name}. ¿Te gustaría ver más detalles de esta área o prefieres ver otra parte del proyecto?"
-                logger.info(f"Using any available photo: {any_photo.get('display_name')} - {zona_name}")
-            else:
-                return {
-                    "success": False,
-                    "error": f"No se encontró ninguna foto para la categoría {categoria}. ¿Te gustaría ver otra área del proyecto?"
-                }
+            return {
+                "success": False,
+                "error": f"No se encontró ninguna foto para la categoría {categoria}. ¿Te gustaría ver otra área del proyecto?"
+            }
         
         # Determinar el mensaje a enviar
-        mensaje_categoria = mensajes_predeterminados.get(categoria, "Descubre Artek Mar, donde la vida se ve mejor.")
+        mensaje_categoria = mensajes_predeterminados.get(categoria, "Descubre Residencias Chablé, donde la vida se ve mejor.")
         mensaje_final = mensaje_acompañante if mensaje_acompañante else (caption if caption else mensaje_categoria)
         
         # Aquí iría la integración con el sistema de mensajería (como Twilio)
@@ -968,7 +868,7 @@ def enviar_foto(
         # Optimize image URL for WhatsApp (5MB limit) using Cloudinary transformations
         if url_foto and "cloudinary.com" in url_foto:
             # Add Cloudinary transformations to compress and optimize for WhatsApp
-            # Insert transformations before the version (v1746364206)
+            # Insert transformations before the version (v1757450607)
             if "/upload/v" in url_foto:
                 # Add quality reduction and format optimization
                 optimized_url = url_foto.replace(

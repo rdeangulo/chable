@@ -81,15 +81,15 @@ class SingleAIHandler:
                 "type": "function",
                 "function": {
                     "name": "enviar_foto",
-                    "description": "Send property photos",
+                    "description": "Send photos of Chablé residences (KIN, KUXTAL, ÓOL, ÓOL TORRE, UTZ). Use 'interior' or 'planos' as categoria. Use 'kin', 'kuxtal', 'ool', 'ool_torre', or 'utz' as tipo_apartamento.",
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "categoria": {"type": "string"},
-                            "subcategoria": {"type": "string"},
-                            "tipo_apartamento": {"type": "string"},
-                            "area": {"type": "string"},
-                            "mensaje_acompañante": {"type": "string"}
+                            "categoria": {"type": "string", "description": "Photo category: 'interior' or 'planos'"},
+                            "subcategoria": {"type": "string", "description": "Optional subcategory"},
+                            "tipo_apartamento": {"type": "string", "description": "Residence type: 'kin', 'kuxtal', 'ool', 'ool_torre', or 'utz'"},
+                            "area": {"type": "string", "description": "Specific area of the residence"},
+                            "mensaje_acompañante": {"type": "string", "description": "Custom message to accompany the photo"}
                         },
                         "required": ["categoria"]
                     }
