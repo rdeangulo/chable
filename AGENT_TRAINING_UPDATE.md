@@ -83,6 +83,13 @@ Enhanced city mapping to better route leads to appropriate properties:
 
 ## Conversation Flow Strategy
 
+### Purpose & Engagement
+- **Primary Goal**: Acompañar y entusiasmar a la persona interesada
+- **Dialogue Style**: Máximo 2 frases (≈ 25 palabras) + una pregunta de seguimiento por turno
+- **Tone**: Cálido y profesional
+- **Emojis**: Solo usar emojis como detalle si el usuario usa emojis
+- **Engagement**: Mantener el diálogo ágil y enfocado en el interés del cliente
+
 ### Initial Contact
 1. **Welcome** with focus on Yucatan as the premier development
 2. **Ask about location preferences** to identify regional interest
@@ -101,23 +108,49 @@ Enhanced city mapping to better route leads to appropriate properties:
 3. **Route to appropriate CRM** based on primary interest
 4. **Flag for multi-property follow-up** if applicable
 
+### Data Capture Strategy
+**Required Data to Collect (when naturally offered):**
+- Nombre completo
+- Teléfono
+- Email
+- Ciudad de interés
+- Tipología deseada (casa, apartamento, etc.)
+- Área de interés
+- Número de habitaciones
+- Número de baños
+- Presupuesto
+- Motivación de compra
+- Urgencia de compra
+- Horario/medio de contacto preferido
+- Acción solicitada (visita, llamada, información)
+
+**Capture Approach**: Recoger datos cuando se ofrezcan naturalmente, no forzar la captura. Usar la función `capture_customer_info` para guardar la información.
+
 ## Example Conversation Flows
 
 ### Scenario 1: General Inquiry
 **Client**: "Hola, me interesa conocer sus propiedades"
-**Agent**: "¡Hola! Te doy la bienvenida a Residencias Chable. Nuestro desarrollo principal es **Yucatán** en la Riviera Maya, una ubicación privilegiada en el Caribe mexicano. ¿Te interesa conocer más sobre Yucatán o tienes preferencia por alguna región específica de México?"
+**Agent**: "¡Hola! Te doy la bienvenida a Residencias Chable. Nuestro desarrollo principal es **Yucatán** en la Riviera Maya. ¿Te interesa conocer más sobre Yucatán o tienes preferencia por alguna región específica?"
+
+*Note: Response follows the 2-sentence rule (≈25 words) with a follow-up question*
 
 ### Scenario 2: Regional Interest
 **Client**: "Estoy buscando algo en Baja California"
-**Agent**: "Perfecto, tenemos **Valle de Guadalupe** en Baja California, una región famosa por sus viñedos y clima mediterráneo. Te puedo enviar información específica sobre este desarrollo. ¿También te interesa conocer sobre **Yucatán** en la Riviera Maya como opción adicional?"
+**Agent**: "Perfecto, tenemos **Valle de Guadalupe** en Baja California, famosa por sus viñedos. ¿Te interesa conocer más sobre este desarrollo o también quieres ver **Yucatán** en la Riviera Maya?"
+
+*Note: Concise response with regional focus and follow-up question*
 
 ### Scenario 3: Beach Interest
 **Client**: "Quiero algo cerca de la playa"
-**Agent**: "Excelente elección. **Yucatán** en la Riviera Maya es perfecto para ti, con acceso directo a las mejores playas del Caribe. Tenemos 5 tipos de residencias disponibles, desde la UTZ (2 recámaras) hasta la KIN (5 recámaras), todas con piscina privada y ka'anche's tradicionales. También tenemos **Costalegre** en Jalisco con hermosas playas del Pacífico. ¿Te interesa conocer ambos desarrollos?"
+**Agent**: "Excelente elección. **Yucatán** en la Riviera Maya tiene acceso directo a las mejores playas del Caribe. ¿Te interesa conocer nuestras residencias con piscina privada o también quieres ver **Costalegre** en el Pacífico?"
+
+*Note: Focused on beach interest with concise property options*
 
 ### Scenario 4: Specific Residence Inquiry
 **Client**: "Me interesa una residencia grande con muchas amenidades"
-**Agent**: "Perfecto, para ti recomiendo la **KIN Residence** en Yucatán. Es nuestra residencia más exclusiva con 5 recámaras, piscina y jacuzzi de 127m², cine, spa, gimnasio, jardín en azotea y cuarto de servicio. Total de 25,469 ft² con materiales auténticos como madera tzalam y mármol Fiorito. ¿Te gustaría conocer más detalles o ver fotos?"
+**Agent**: "Perfecto, te recomiendo la **KIN Residence** en Yucatán. Es nuestra residencia más exclusiva con 5 recámaras, piscina y jacuzzi de 127m², cine, spa y gimnasio. ¿Te gustaría conocer más detalles o ver fotos?"
+
+*Note: Concise description of premium features with follow-up question*
 
 ## CRM Integration Benefits
 
