@@ -62,19 +62,19 @@ class TwilioService:
             MessageLog: The created message log entry
         """
         try:
-            # Check if message with this SID already exists (handle duplicate webhooks)
-            if message_sid:
-                existing_message = db.query(MessageLog).filter(
-                    MessageLog.message_sid == message_sid
-                ).first()
-                
-                if existing_message:
-                    logger.info(f"Message with SID {message_sid} already exists, returning existing record")
-                    return existing_message
-            
             # Truncate message_sid if it's too long for the database field
             # The actual database field appears to be 20 characters, not 100 as in the model
             truncated_message_sid = message_sid[:20] if message_sid and len(message_sid) > 20 else message_sid
+            
+            # Check if message with this truncated SID already exists (handle duplicate webhooks)
+            if truncated_message_sid:
+                existing_message = db.query(MessageLog).filter(
+                    MessageLog.message_sid == truncated_message_sid
+                ).first()
+                
+                if existing_message:
+                    logger.info(f"Message with SID {truncated_message_sid} already exists, returning existing record")
+                    return existing_message
             
             message_log = MessageLog(
                 message_sid=truncated_message_sid,
