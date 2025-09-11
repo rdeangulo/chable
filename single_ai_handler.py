@@ -141,6 +141,27 @@ class SingleAIHandler:
                         "required": ["telefono"]
                     }
                 }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "qualify_lead",
+                    "description": "Capture and qualify a lead when user shows explicit interest in visiting, buying, or being contacted. Use when user requests visits, calls, or shows buying intent.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "nombre": {"type": "string", "description": "Customer name"},
+                            "telefono": {"type": "string", "description": "Phone number"},
+                            "email": {"type": "string", "description": "Email address"},
+                            "motivo": {"type": "string", "description": "Reason for interest: 'visita', 'informacion', 'llamada', 'compra'"},
+                            "urgencia": {"type": "string", "description": "Urgency level: 'inmediata', 'esta_semana', 'sin_urgencia'"},
+                            "ciudad_interes": {"type": "string", "description": "City of interest"},
+                            "tipo_propiedad": {"type": "string", "description": "Property type preference"},
+                            "presupuesto": {"type": "string", "description": "Budget range"}
+                        },
+                        "required": ["nombre", "telefono", "motivo"]
+                    }
+                }
             }
         ]
     
@@ -532,7 +553,7 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
                     max_results = function_args.get("max_results", 5)
                     result = self.call_vector_store(query, max_results)
                     
-                elif function_name in ["enviar_foto", "capture_customer_info", "send_brochure", "send_yucatan_location"]:
+                elif function_name in ["enviar_foto", "capture_customer_info", "send_brochure", "send_yucatan_location", "qualify_lead"]:
                     # Call the real function from execute_functions.py
                     if db and sender_info:
                         import asyncio

@@ -23,8 +23,6 @@ from app.utils import (
     get_debounced_message,
     cleanup_message_buffer,
     is_number_blocked,
-    auto_inject_missing_lead,
-    verify_and_fix_missing_leads,
 )
 from app.services.twilio_service import TwilioService
 from app.execute_functions import execute_function, enviar_foto
@@ -389,11 +387,7 @@ async def process_message(
         except Exception as e:
             logger.error(f"Error storing conversation: {e}")
 
-        # Auto-inject missing lead if needed
-        try:
-            await auto_inject_missing_lead(client, db, thread_record, debounced_message)
-        except Exception as e:
-            logger.error(f"Error in auto-lead injection: {e}")
+        # Lead capture is now handled by AI functions - no separate detection needed
 
         return Response(content="", status_code=200)
 
