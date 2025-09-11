@@ -51,10 +51,27 @@ logger.setLevel(logging.INFO)
 # Get the root directory of the project (one level up from app directory)
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Path to fotos.json
-FOTOS_JSON_PATH = os.path.join(ROOT_DIR, "assets", "fotos.json")
+# Path to fotos.json - try multiple possible locations
+POSSIBLE_PATHS = [
+    os.path.join(ROOT_DIR, "assets", "fotos.json"),  # Local development
+    os.path.join(os.getcwd(), "assets", "fotos.json"),  # Render deployment
+    os.path.join("/opt/render/project/src", "assets", "fotos.json"),  # Render specific
+    os.path.join(os.path.dirname(__file__), "..", "assets", "fotos.json"),  # Relative to current file
+]
+
+# Find the first existing path
+FOTOS_JSON_PATH = None
+for path in POSSIBLE_PATHS:
+    if os.path.exists(path):
+        FOTOS_JSON_PATH = path
+        break
+
+if not FOTOS_JSON_PATH:
+    # If no path found, use the first one as default
+    FOTOS_JSON_PATH = POSSIBLE_PATHS[0]
 
 logger.info(f"Loading photos database from: {FOTOS_JSON_PATH}")
+logger.info(f"File exists: {os.path.exists(FOTOS_JSON_PATH)}")
 
 # In app/execute_functions.py
 
@@ -703,10 +720,124 @@ def cargar_base_fotos() -> Dict[str, Any]:
                 return data
         else:
             logger.error(f"Archivo de fotos no encontrado: {FOTOS_JSON_PATH}")
-            return {}
+            logger.info("Usando base de datos de fotos de respaldo...")
+            return get_fallback_photos_db()
     except Exception as e:
         logger.error(f"Error cargando base de datos de fotos: {str(e)}")
-        return {}
+        logger.info("Usando base de datos de fotos de respaldo...")
+        return get_fallback_photos_db()
+
+def get_fallback_photos_db() -> Dict[str, Any]:
+    """
+    Base de datos de fotos de respaldo en caso de que el archivo JSON no esté disponible.
+    
+    Returns:
+        dict: Base de datos de fotos hardcodeada
+    """
+    return {
+        "residencias": {
+            "kin": {
+                "nombre": "KIN Residence",
+                "descripcion": "Residencia más exclusiva con 5 recámaras, piscina y jacuzzi de 127m², cine, spa, gimnasio, jardín en azotea y cuarto de servicio",
+                "fotos": {
+                    "interior": [
+                        {
+                            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/v1757450607/residencia-kin-1_vfzatf.webp",
+                            "descripcion": "Interior de la residencia KIN",
+                            "tipo": "interior"
+                        }
+                    ],
+                    "planos": [
+                        {
+                            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/v1757450607/KinTOrre_sohyjz.webp",
+                            "descripcion": "Plano de la residencia KIN",
+                            "tipo": "plano"
+                        }
+                    ]
+                }
+            },
+            "kuxtal": {
+                "nombre": "KUXTAL Residence",
+                "descripcion": "Residencia de 4 recámaras con piscina de 95m², terraza con ka'anche' y cuarto de servicio",
+                "fotos": {
+                    "interior": [
+                        {
+                            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/v1757450608/residencias-kuxtal-1_vnpeyt.webp",
+                            "descripcion": "Interior de la residencia KUXTAL",
+                            "tipo": "interior"
+                        }
+                    ],
+                    "planos": [
+                        {
+                            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/v1757450607/PlanoKuxtal_ojubkc.webp",
+                            "descripcion": "Plano de la residencia KUXTAL",
+                            "tipo": "plano"
+                        }
+                    ]
+                }
+            },
+            "ool": {
+                "nombre": "ÓOL Residence",
+                "descripcion": "Residencia de 3 recámaras con piscina de 75m² y terraza con ka'anche'",
+                "fotos": {
+                    "interior": [
+                        {
+                            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/v1757450608/rwsidencia-ool-1_fx7f4y.webp",
+                            "descripcion": "Interior de la residencia ÓOL",
+                            "tipo": "interior"
+                        }
+                    ],
+                    "planos": [
+                        {
+                            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/v1757450607/PlanoOOL_pocgbv.webp",
+                            "descripcion": "Plano de la residencia ÓOL",
+                            "tipo": "plano"
+                        }
+                    ]
+                }
+            },
+            "ool_torre": {
+                "nombre": "ÓOL WITH TOWER Residence",
+                "descripcion": "Residencia de 3 recámaras con torre, piscina de 75m² y terraza con ka'anche'",
+                "fotos": {
+                    "interior": [
+                        {
+                            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/v1757450608/rwsidencia-ool-torre-1_o8egzo.webp",
+                            "descripcion": "Interior de la residencia ÓOL WITH TOWER",
+                            "tipo": "interior"
+                        }
+                    ],
+                    "planos": [
+                        {
+                            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/v1757450607/PlanoOOLTorre_qrcdeh.webp",
+                            "descripcion": "Plano de la residencia ÓOL WITH TOWER",
+                            "tipo": "plano"
+                        }
+                    ]
+                }
+            },
+            "utz": {
+                "nombre": "UTZ Residence",
+                "descripcion": "Residencia de 2 recámaras con piscina de 60m² y terraza con ka'anche'",
+                "fotos": {
+                    "interior": [
+                        {
+                            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/v1757450608/residencia-utz-1_fujveh.webp",
+                            "descripcion": "Interior de la residencia UTZ",
+                            "tipo": "interior"
+                        }
+                    ],
+                    "planos": [
+                        {
+                            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/v1757450607/PlanoUtz_xfbifl.webp",
+                            "descripcion": "Plano de la residencia UTZ",
+                            "tipo": "plano"
+                        }
+                    ]
+                }
+            }
+        }
+    }
 
 def buscar_foto_alternativa(fotos_db: Dict[str, Any], categoria: str, tags: List[str] = None) -> tuple:
     """
