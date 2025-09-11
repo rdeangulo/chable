@@ -72,8 +72,12 @@ class TwilioService:
                     logger.info(f"Message with SID {message_sid} already exists, returning existing record")
                     return existing_message
             
+            # Truncate message_sid if it's too long for the database field
+            # The actual database field appears to be 20 characters, not 100 as in the model
+            truncated_message_sid = message_sid[:20] if message_sid and len(message_sid) > 20 else message_sid
+            
             message_log = MessageLog(
-                message_sid=message_sid,
+                message_sid=truncated_message_sid,
                 direction=direction,
                 from_number=from_number,
                 to_number=to_number,
