@@ -1688,19 +1688,19 @@ async def detect_lead_interest(client, message_text: str) -> dict:
         Mensaje a analizar: "{message_text}"
 
         Responde ÚNICAMENTE con un JSON válido que contenga estos campos exactos:
-        {
+        {{
             "shows_interest": true/false,
             "interest_type": "visita/contacto/informacion/compra/otro",
             "urgency_level": "inmediata/esta_semana/sin_urgencia",
             "confidence_score": 0-100,
             "requires_human_followup": true/false,
             "reason": "breve explicación de por qué sí/no requiere seguimiento humano",
-            "extracted_info": {
+            "extracted_info": {{
                 "presupuesto": "valor extraído o null",
                 "ubicacion": "ubicación mencionada o null",
                 "tipo_propiedad": "tipo mencionado o null"
-            }
-        }
+            }}
+        }}
         """
 
         try:
