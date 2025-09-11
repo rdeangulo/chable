@@ -121,8 +121,8 @@ def unblock_number(phone_number: str) -> bool:
 
 async def get_debounced_message(whatsapp_number: str, current_message: str, message_sid: str) -> tuple[str, str, bool]:
     """
-    Implements message debouncing logic. If multiple messages are received from the same number
-    within 5 seconds, they will be combined into a single message.
+    Implements smart message buffering logic. If multiple messages are received from the same number
+    within 3 seconds, they will be combined into a single message. This handles users who type in chunks.
     
     Args:
         whatsapp_number: The sender's WhatsApp number
@@ -143,35 +143,46 @@ async def get_debounced_message(whatsapp_number: str, current_message: str, mess
             buffer_data = message_buffer[whatsapp_number]
             last_message_time = buffer_data['timestamp']
             
-            # If the message is within 5 seconds of the last one
-            if current_time - last_message_time < 5:
-                # Combine messages
-                combined_message = f"{buffer_data['message']}\n{current_message}"
+            # If the message is within 3 seconds of the last one (optimized for chunk typing)
+            if current_time - last_message_time < 3:
+                # Smart message combination - use space for short messages, newline for longer ones
+                if len(current_message) <= 10 and len(buffer_data['message']) <= 50:
+                    # Short messages: combine with space (like "Hola como estas")
+                    combined_message = f"{buffer_data['message']} {current_message}"
+                else:
+                    # Longer messages: combine with newline
+                    combined_message = f"{buffer_data['message']}\n{current_message}"
+                
                 buffer_data.update({
                     'message': combined_message,
-                    'timestamp': current_time
+                    'timestamp': current_time,
+                    'message_count': buffer_data.get('message_count', 1) + 1
                 })
                 message_buffer[whatsapp_number] = buffer_data
-                logger.info(f"Buffering message for {whatsapp_number}: {current_message}")
+                logger.info(f"📝 Buffering message #{buffer_data['message_count']} for {whatsapp_number}: '{current_message}' → Combined: '{combined_message}'")
                 return combined_message, buffer_data['message_sid'], False
             else:
-                # More than 5 seconds have passed, process the old message and start new buffer
+                # More than 3 seconds have passed, process the old message and start new buffer
                 old_data = message_buffer[whatsapp_number]
                 message_buffer[whatsapp_number] = {
                     'message': current_message,
                     'timestamp': current_time,
-                    'message_sid': message_sid
+                    'message_sid': message_sid,
+                    'message_count': 1
                 }
+                logger.info(f"⏰ Buffer timeout for {whatsapp_number}, processing: '{old_data['message']}'")
                 return old_data['message'], old_data['message_sid'], True
         else:
             # No existing message, create new buffer
             message_buffer[whatsapp_number] = {
                 'message': current_message,
                 'timestamp': current_time,
-                'message_sid': message_sid
+                'message_sid': message_sid,
+                'message_count': 1
             }
             # For first message, wait a bit to see if more messages come in
-            await asyncio.sleep(0.5)  # Small delay to catch rapid messages
+            await asyncio.sleep(0.3)  # Reduced delay for faster response
+            logger.info(f"🆕 New message buffer for {whatsapp_number}: '{current_message}'")
             return current_message, message_sid, True
 
 async def cleanup_message_buffer(whatsapp_number: str):
@@ -181,6 +192,27 @@ async def cleanup_message_buffer(whatsapp_number: str):
     async with message_lock:
         if whatsapp_number in message_buffer:
             del message_buffer[whatsapp_number]
+            logger.info(f"🧹 Cleaned up message buffer for {whatsapp_number}")
+
+async def flush_message_buffer(whatsapp_number: str) -> tuple[str, str, bool]:
+    """
+    Manually flush the message buffer for a specific number.
+    Useful for forcing immediate processing of buffered messages.
+    
+    Returns:
+        tuple: (message, message_sid, should_process)
+    """
+    async with message_lock:
+        if whatsapp_number in message_buffer:
+            buffer_data = message_buffer[whatsapp_number]
+            message = buffer_data['message']
+            message_sid = buffer_data['message_sid']
+            del message_buffer[whatsapp_number]
+            logger.info(f"🚀 Manually flushed buffer for {whatsapp_number}: '{message}'")
+            return message, message_sid, True
+        else:
+            logger.info(f"⚠️ No buffer to flush for {whatsapp_number}")
+            return "", "", False
 
 
 def clean_repeated_text(message):

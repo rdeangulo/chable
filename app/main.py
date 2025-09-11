@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from openai import OpenAI
 from app.db import get_db
-from app.models import Conversation, Thread, CustomerInfo, QualifiedLead, Message
+from app.models import Conversation, Thread, CustomerInfo, QualifiedLead, Message, MessageLog
 from app.utils import (
     logger,
     send_message,
@@ -244,12 +244,12 @@ async def process_message(
             # Message is being buffered, return early
             return Response(content="", status_code=200)
 
-        # Check if this message has already been processed
-        existing_message = (
-            db.query(Conversation).filter_by(message_sid=final_message_sid).first()
+        # Check if this specific message has already been processed
+        existing_conversation = (
+            db.query(Conversation).filter_by(message_sid=message_sid).first()
         )
-        if existing_message:
-            logger.info(f"Message {final_message_sid} has already been processed")
+        if existing_conversation:
+            logger.info(f"Message {message_sid} has already been processed")
             return Response(content="", status_code=200)
 
         # Find or create a thread for this user
@@ -299,7 +299,7 @@ async def process_message(
             from_number=whatsapp_number,
             to_number=os.getenv("TWILIO_WHATSAPP_NUMBER", ""),
             message_body=debounced_message,
-            message_sid=final_message_sid,
+            message_sid=message_sid,
             status=form_data.get("SmsStatus"),
             thread_id=thread_record.id,
         )
@@ -356,7 +356,7 @@ async def process_message(
                 message=debounced_message,  # Store the debounced message
                 response=response,
                 thread_id=thread_record.id,
-                message_sid=final_message_sid,
+                message_sid=message_sid,
             )
             db.add(conversation)
 
@@ -367,7 +367,7 @@ async def process_message(
                         thread_id=thread_record.id,
                         role="user",
                         content=debounced_message,
-                        message_sid=final_message_sid,
+                        message_sid=message_sid,
                     ),
                     Message(
                         thread_id=thread_record.id,
