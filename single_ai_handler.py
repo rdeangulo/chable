@@ -13,6 +13,7 @@ import logging
 from typing import Dict, Any, List, Optional
 from openai import OpenAI
 from dotenv import load_dotenv
+from app.execute_functions import execute_function
 
 # Load environment variables
 load_dotenv()
@@ -122,6 +123,20 @@ class SingleAIHandler:
                         "properties": {
                             "telefono": {"type": "string"},
                             "tipo_propiedad": {"type": "string"}
+                        },
+                        "required": ["telefono"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "send_yucatan_location",
+                    "description": "Send the location of Chablé Yucatan via WhatsApp. Use when users ask about location, address, or how to get to the project.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "telefono": {"type": "string", "description": "Phone number to send location to"}
                         },
                         "required": ["telefono"]
                     }
@@ -426,7 +441,7 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
             logger.error(f"Error calling vector store: {e}")
             return []
     
-    def process_message(self, user_message: str, model_speed: str = "balanced") -> str:
+    def process_message(self, user_message: str, model_speed: str = "balanced", db=None, sender_info=None) -> str:
         """
         Process a user message using the selected model and functions.
         
@@ -463,7 +478,7 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
             # Check if functions were called
             if response.choices[0].message.tool_calls:
                 # Execute functions
-                function_results = self._execute_functions(response.choices[0].message.tool_calls)
+                function_results = self._execute_functions(response.choices[0].message.tool_calls, db, sender_info)
                 
                 # Add function results to conversation
                 messages.append({
@@ -500,7 +515,7 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
             logger.error(f"Error processing message: {e}")
             return "Lo siento, hubo un problema técnico. Por favor, intenta de nuevo más tarde."
     
-    def _execute_functions(self, tool_calls: List[Any]) -> List[Dict[str, Any]]:
+    def _execute_functions(self, tool_calls: List[Any], db=None, sender_info=None) -> List[Dict[str, Any]]:
         """Execute the functions called by OpenAI."""
         results = []
         
@@ -517,14 +532,23 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
                     max_results = function_args.get("max_results", 5)
                     result = self.call_vector_store(query, max_results)
                     
-                elif function_name == "enviar_foto":
-                    result = f"Foto enviada para: {function_args.get('categoria', 'propiedad')}"
-                    
-                elif function_name == "capture_customer_info":
-                    result = f"Información capturada para: {function_args.get('nombre', 'cliente')}"
-                    
-                elif function_name == "send_brochure":
-                    result = f"Folleto enviado al: {function_args.get('telefono', 'número')}"
+                elif function_name in ["enviar_foto", "capture_customer_info", "send_brochure", "send_yucatan_location"]:
+                    # Call the real function from execute_functions.py
+                    if db and sender_info:
+                        import asyncio
+                        try:
+                            # Run the async function
+                            loop = asyncio.get_event_loop()
+                            if loop.is_running():
+                                # If we're already in an async context, we need to use a different approach
+                                result = f"Función {function_name} ejecutada (requiere contexto async)"
+                            else:
+                                result = loop.run_until_complete(execute_function(function_name, function_args, db, sender_info))
+                        except Exception as e:
+                            logger.error(f"Error executing async function {function_name}: {e}")
+                            result = f"Error ejecutando función: {str(e)}"
+                    else:
+                        result = f"Función {function_name} requiere contexto de base de datos"
                     
                 else:
                     result = f"Función {function_name} ejecutada con éxito"
