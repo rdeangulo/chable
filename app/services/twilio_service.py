@@ -62,6 +62,16 @@ class TwilioService:
             MessageLog: The created message log entry
         """
         try:
+            # Check if message with this SID already exists (handle duplicate webhooks)
+            if message_sid:
+                existing_message = db.query(MessageLog).filter(
+                    MessageLog.message_sid == message_sid
+                ).first()
+                
+                if existing_message:
+                    logger.info(f"Message with SID {message_sid} already exists, returning existing record")
+                    return existing_message
+            
             message_log = MessageLog(
                 message_sid=message_sid,
                 direction=direction,
