@@ -111,11 +111,11 @@ class TwilioService:
         # Simple template storage - in production, this could be database-driven
         templates = {
             "followup": {
-                "body": "Hola! Te escribo para seguir en contacto sobre tu interés en Artek Mar. ¿Te gustaría agendar una visita o tienes alguna pregunta específica?",
+                "body": "Hola! Te escribo para seguir en contacto sobre tu interés en nuestros desarrollos exclusivos. ¿Te gustaría agendar una visita o tienes alguna pregunta específica?",
                 "name": "followup"
             },
             "welcome": {
-                "body": "¡Hola! Bienvenido a Artek Mar. Soy tu asistente virtual y estoy aquí para ayudarte con información sobre nuestro proyecto residencial.",
+                "body": "¡Hola! Bienvenido a nuestros desarrollos exclusivos. Soy tu asistente virtual y estoy aquí para ayudarte con información sobre nuestros proyectos residenciales.",
                 "name": "welcome"
             }
         }

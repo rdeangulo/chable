@@ -114,8 +114,8 @@ For real-time message status updates, configure a Twilio webhook:
 
 The system includes a pre-approved template:
 ```
-Hola, soy Valeria Mercado de Artek Mar.
-¡Me encantaría presentarte nuestro nuevo proyecto en Altos de Los Rosales, Barranquilla!
+Hola, soy Valeria Mercado de nuestros desarrollos exclusivos.
+¡Me encantaría presentarte nuestros proyectos en México!
 ¿Te gustaría conocer más detalles?
 ```
 
@@ -194,7 +194,7 @@ campaign_analytics (
 
 ### Security Features
 
-- **Number Validation**: Colombian phone number format validation
+- **Number Validation**: International phone number format validation
 - **Blocked List**: Automatic prevention of messages to blocked numbers
 - **Rate Limiting**: Configurable delays between campaign messages
 - **Template Compliance**: Only approved WhatsApp templates can be sent

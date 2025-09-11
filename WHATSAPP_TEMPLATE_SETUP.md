@@ -50,8 +50,8 @@ Your approved template:
 - **Name**: `outgreet`
 - **Content**: 
   ```
-  Hola, soy Valeria Mercado de Artek Mar.
-  ¡Me encantaría presentarte nuestro nuevo proyecto en Altos de Los Rosales, Barranquilla!
+  Hola, soy Valeria Mercado de nuestros desarrollos exclusivos.
+  ¡Me encantaría presentarte nuestros proyectos en México!
   ¿Te gustaría conocer más detalles?
   ```
 - **Category**: MARKETING (or UTILITY)

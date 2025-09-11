@@ -1012,17 +1012,18 @@ def send_location_message(to_number, latitude, longitude, name, address):
         return None
 
 
-def send_artek_mar_location(to_number):
+def send_yucatan_location(to_number):
     """
-    Send the Artek Mar location via WhatsApp.
+    Send the Chablé Yucatan location via WhatsApp.
     """
-    # Fixed coordinates and details for Artek Mar
-    latitude = 11.0252907
-    longitude = -74.8572752
-    name = "Artek Mar - Residere"
-    address = "Altos de Los Rosales, Barranquilla, Colombia"
+    # Coordinates for Chablé Yucatan
+    latitude = 20.75437450571972
+    longitude = -89.86088050055272
+    name = "Chablé Yucatan"
+    address = "Yucatan, Mexico"
 
     return send_location_message(to_number, latitude, longitude, name, address)
+
 
 async def check_and_handle_active_runs(client, thread_id):
     """
@@ -1903,7 +1904,7 @@ async def auto_inject_missing_lead(client, db: Session, thread_record, message_t
             "ciudad_interes": extracted_info.get("ubicacion"),
             "tipo_propiedad": extracted_info.get("tipo_propiedad"),
             "presupuesto": extracted_info.get("presupuesto"),
-            "proyecto_interes": "Artek Mar"  # Default project
+            "proyecto_interes": "Yucatan"  # Default project
         }
         
         # Procesar presupuesto si existe
@@ -2005,7 +2006,7 @@ async def verify_and_fix_missing_leads(client, db: Session, thread_record) -> bo
             "ciudad_interes": extracted_info.get("ubicacion"),
             "tipo_propiedad": extracted_info.get("tipo_propiedad"),
             "presupuesto": extracted_info.get("presupuesto"),
-            "proyecto_interes": "Artek Mar"
+            "proyecto_interes": "Yucatan"
         }
         
         # Procesar presupuesto si existe

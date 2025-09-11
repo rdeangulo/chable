@@ -8,11 +8,11 @@ from sqlalchemy.orm import Session
 from app.models import CustomerInfo, QualifiedLead, Thread
 from app.timeout_util import with_timeout
 from app.utils import (
-    send_artek_mar_location,
     analyze_conversation_thread,
     logger,
     send_twilio_media_message,
-    create_hubspot_contact
+    create_hubspot_contact,
+    send_yucatan_location
 )
 from openai import OpenAI
 import colorama
@@ -229,7 +229,10 @@ async def execute_function(tool_call, db: Session, sender_info=None):
                 "error": f"Error al registrar tu información: {str(e)}"
             }
 
-    elif function_name == "send_artek_mar_location":
+
+
+
+    elif function_name == "send_yucatan_location":
         try:
             # Get the sender's phone number
             phone_number = sender_info.get("number") if sender_info else function_arguments.get("telefono")
@@ -241,12 +244,12 @@ async def execute_function(tool_call, db: Session, sender_info=None):
                 }
 
             # Send the location
-            message_sid = send_artek_mar_location(phone_number)
+            message_sid = send_yucatan_location(phone_number)
 
             if message_sid:
                 return {
                     "success": True,
-                    "message": "Algo mas en lo que te pueda ayudar?"
+                    "message": "Te he enviado la ubicación de Chablé Yucatan. ¿Te gustaría conocer más detalles sobre el proyecto?"
                 }
             else:
                 return {
@@ -254,13 +257,11 @@ async def execute_function(tool_call, db: Session, sender_info=None):
                     "error": "No se pudo enviar la ubicación. Por favor, intenta nuevamente."
                 }
         except Exception as e:
-            logger.error(f"Error sending Artek Mar location: {str(e)}")
+            logger.error(f"Error sending Yucatan location: {str(e)}")
             return {
                 "success": False,
                 "error": f"Error al enviar la ubicación: {str(e)}"
             }
-
-
 
     elif function_name == "provide_contact_info":
         try:
@@ -897,7 +898,7 @@ def enviar_foto(
 
 def send_brochure(to_number: str) -> dict:
     """
-    Envía el brochure digital de Artek Mar.
+    Envía el brochure digital de nuestros desarrollos.
     
     Args:
         to_number: Número de teléfono del destinatario
@@ -956,7 +957,7 @@ async def provide_contact_info(db: Session, data: dict) -> dict:
             "urgencia_compra": data.get("urgencia", "sin_urgencia"),
             "desea_llamada": True,
             "metodo_contacto_preferido": "WhatsApp",
-            "proyecto_interes": "Artek Mar"
+            "proyecto_interes": "Yucatan"
         }
         
         # Calificar el lead
@@ -969,7 +970,7 @@ async def provide_contact_info(db: Session, data: dict) -> dict:
         contact_info = {
             "nombre": "Kevin",
             "telefono": "+57 310 221 2532",
-            "correo": "asesor@artekmar.com ",
+            "correo": "asesor@residenciaschable.com",
             "cargo": "Asesor Comercial" 
         }
         
