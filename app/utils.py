@@ -121,8 +121,9 @@ def unblock_number(phone_number: str) -> bool:
 
 async def get_debounced_message(whatsapp_number: str, current_message: str, message_sid: str) -> tuple[str, str, bool]:
     """
-    Implements smart message buffering logic. If multiple messages are received from the same number
-    within 3 seconds, they will be combined into a single message. This handles users who type in chunks.
+    Implements ultra-fast message buffering logic. If multiple messages are received from the same number
+    within 1.5 seconds, they will be combined into a single message. This handles users who type in chunks
+    while maintaining human-like response speed.
     
     Args:
         whatsapp_number: The sender's WhatsApp number
@@ -143,8 +144,8 @@ async def get_debounced_message(whatsapp_number: str, current_message: str, mess
             buffer_data = message_buffer[whatsapp_number]
             last_message_time = buffer_data['timestamp']
             
-            # If the message is within 3 seconds of the last one (optimized for chunk typing)
-            if current_time - last_message_time < 3:
+            # If the message is within 1.5 seconds of the last one (optimized for fast chunk typing)
+            if current_time - last_message_time < 1.5:
                 # Smart message combination - use space for short messages, newline for longer ones
                 if len(current_message) <= 10 and len(buffer_data['message']) <= 50:
                     # Short messages: combine with space (like "Hola como estas")
@@ -180,9 +181,8 @@ async def get_debounced_message(whatsapp_number: str, current_message: str, mess
                 'message_sid': message_sid,
                 'message_count': 1
             }
-            # For first message, wait a bit to see if more messages come in
-            await asyncio.sleep(0.3)  # Reduced delay for faster response
-            logger.info(f"🆕 New message buffer for {whatsapp_number}: '{current_message}'")
+            # Process immediately for ultra-fast response like a human would
+            logger.info(f"🆕 New message buffer for {whatsapp_number}: '{current_message}' - processing immediately")
             return current_message, message_sid, True
 
 async def cleanup_message_buffer(whatsapp_number: str):
