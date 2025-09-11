@@ -558,13 +558,31 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
                     if db and sender_info:
                         import asyncio
                         try:
+                            # Create a new event loop for this thread if needed
+                            try:
+                                loop = asyncio.get_event_loop()
+                            except RuntimeError:
+                                loop = asyncio.new_event_loop()
+                                asyncio.set_event_loop(loop)
+                            
+                            # Prepare the tool_call data
+                            tool_call_data = {
+                                "function_name": function_name,
+                                "arguments": json.dumps(function_args)
+                            }
+                            
                             # Run the async function
-                            loop = asyncio.get_event_loop()
                             if loop.is_running():
-                                # If we're already in an async context, we need to use a different approach
-                                result = f"Función {function_name} ejecutada (requiere contexto async)"
+                                # If we're already in an async context, create a task
+                                import concurrent.futures
+                                with concurrent.futures.ThreadPoolExecutor() as executor:
+                                    future = executor.submit(
+                                        lambda: asyncio.run(execute_function(tool_call_data, db, sender_info))
+                                    )
+                                    result = future.result()
                             else:
-                                result = loop.run_until_complete(execute_function(function_name, function_args, db, sender_info))
+                                result = loop.run_until_complete(execute_function(tool_call_data, db, sender_info))
+                                
                         except Exception as e:
                             logger.error(f"Error executing async function {function_name}: {e}")
                             result = f"Error ejecutando función: {str(e)}"

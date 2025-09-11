@@ -132,6 +132,34 @@ async def execute_function(tool_call, db: Session, sender_info=None):
             # Log the result
             logger.info(f"Resultado de enviar_foto: {result}")
             
+            # If the function returned a photo URL, actually send it via Twilio
+            if result.get("success") and result.get("photo_url"):
+                telefono = function_arguments.get("telefono") or sender_info.get("number", "")
+                if telefono:
+                    try:
+                        from app.utils import send_twilio_media_message
+                        photo_url = result["photo_url"]
+                        mensaje = result.get("text_sent", "Aquí tienes la imagen que solicitaste")
+                        
+                        # Send the image via Twilio
+                        message_sid = send_twilio_media_message(
+                            to_number=telefono,
+                            media_url=photo_url,
+                            message_body=mensaje,
+                            media_type="image"
+                        )
+                        
+                        logger.info(f"📸 Imagen enviada exitosamente a {telefono}: {message_sid}")
+                        result["message_sid"] = message_sid
+                        result["sent_via_twilio"] = True
+                        
+                    except Exception as send_error:
+                        logger.error(f"Error enviando imagen via Twilio: {send_error}")
+                        result["twilio_error"] = str(send_error)
+                else:
+                    logger.warning("No se pudo obtener número de teléfono para enviar imagen")
+                    result["error"] = "No se pudo obtener número de teléfono"
+            
             # Return a serializable representation of the result
             return json.dumps(result)
         except Exception as e:

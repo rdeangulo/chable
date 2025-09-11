@@ -245,11 +245,12 @@ async def process_message(
             return Response(content="", status_code=200)
 
         # Check if this specific message has already been processed
+        # Use the final_message_sid from debouncing for duplicate check
         existing_conversation = (
-            db.query(Conversation).filter_by(message_sid=message_sid).first()
+            db.query(Conversation).filter_by(message_sid=final_message_sid).first()
         )
         if existing_conversation:
-            logger.info(f"Message {message_sid} has already been processed")
+            logger.info(f"Message {final_message_sid} has already been processed")
             return Response(content="", status_code=200)
 
         # Find or create a thread for this user
@@ -299,7 +300,7 @@ async def process_message(
             from_number=whatsapp_number,
             to_number=os.getenv("TWILIO_WHATSAPP_NUMBER", ""),
             message_body=debounced_message,
-            message_sid=message_sid,
+            message_sid=final_message_sid,  # Use final_message_sid for consistency
             status=form_data.get("SmsStatus"),
             thread_id=thread_record.id,
         )
@@ -356,7 +357,7 @@ async def process_message(
                 message=debounced_message,  # Store the debounced message
                 response=response,
                 thread_id=thread_record.id,
-                message_sid=message_sid,
+                message_sid=final_message_sid,  # Use final_message_sid for consistency
             )
             db.add(conversation)
 
@@ -367,7 +368,7 @@ async def process_message(
                         thread_id=thread_record.id,
                         role="user",
                         content=debounced_message,
-                        message_sid=message_sid,
+                        message_sid=final_message_sid,  # Use final_message_sid for consistency
                     ),
                     Message(
                         thread_id=thread_record.id,
