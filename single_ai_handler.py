@@ -132,7 +132,7 @@ class SingleAIHandler:
                 "type": "function",
                 "function": {
                     "name": "send_yucatan_location",
-                    "description": "Send the location of Chablé Yucatan via WhatsApp. Use when users ask about location, address, or how to get to the project. Phone number is automatically obtained from the conversation context.",
+                    "description": "Send the location of Chablé Yucatan via WhatsApp. Use ONLY when users explicitly ask about location, address, or how to get to the project. Do not proactively offer location unless specifically requested.",
                     "parameters": {
                         "type": "object",
                         "properties": {
@@ -239,7 +239,7 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
         4. Envía fotos cuando sea apropiado
         5. Captura información del cliente cuando se ofrezca naturalmente
         6. Ofrece folletos y ubicaciones
-        7. Para ubicaciones: usa send_yucatan_location directamente, NO pidas teléfono
+        7. Para ubicaciones: usa send_yucatan_location SOLO cuando pregunten específicamente por ubicación/dirección, NO ofrezcas ubicación proactivamente
         
         REGLAS DE CONVERSACIÓN:
         - Propósito: Acompañar y entusiasmar a la persona interesada
@@ -247,13 +247,15 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
         - Tono: Cálido y profesional
         - Emojis: Solo usar si el usuario los usa primero
         - Mantén el diálogo ágil y enfocado
-        - IMPORTANTE: Para ubicaciones, usa send_yucatan_location SIN pedir teléfono (ya lo tienes del contexto)
+        - IMPORTANTE: Para ubicaciones, usa send_yucatan_location SOLO si preguntan específicamente por ubicación/dirección
+        - TERMINOLOGÍA: Distingue claramente entre "espacios/amenidades" (piscina, spa, gimnasio) y "área construida" (metros cuadrados)
         
         PROPIEDADES DISPONIBLES (4 desarrollos exclusivos):
         - YUCATÁN (ENFOQUE PRINCIPAL) - Riviera Maya, México
           * 5 tipos de residencias: UTZ, KUXTAL, ÓOL, ÓOL WITH TOWER, KIN
           * Materiales auténticos: madera tzalam, mármol Fiorito, piedra natural
-          * Amenidades: piscina privada, ka'anche's, terraza, spa, gimnasio
+          * ESPACIOS Y AMENIDADES: piscina privada, ka'anche's, terraza, spa, gimnasio
+          * IMPORTANTE: Distingue entre "espacios/amenidades" y "área construida en m²"
         - Valle de Guadalupe - Baja California, México
         - Costalegre - Jalisco, México
         - Residencias - Ubicación general
@@ -295,47 +297,34 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
         1. UTZ RESIDENCE (2 recámaras)
            - Recámara principal y recámara doble
            - 2.5 baños, cocina abierta, bar
-           - Patio con ka'anche's privado
-           - Piscina de 38 m²
-           - Total: 5,498.79 ft² / 510.91 m²
+           - ESPACIOS: Patio con ka'anche's privado, piscina de 38 m²
+           - ÁREA CONSTRUIDA: 5,498.79 ft² / 510.91 m²
         
         2. KUXTAL RESIDENCE (3 recámaras)
            - Recámara principal y 2 recámaras dobles
            - 3.5 baños, cocina abierta, bar, sala de TV
-           - Patio con ka'anche's privado
-           - Piscina de 38 m²
-           - Cuarto de servicio
-           - Total: 6,953.64 ft² / 645.84 m²
+           - ESPACIOS: Patio con ka'anche's privado, piscina de 38 m², cuarto de servicio
+           - ÁREA CONSTRUIDA: 6,953.64 ft² / 645.84 m²
         
         3. ÓOL RESIDENCE (4 recámaras)
            - Recámara principal y 3 recámaras dobles
            - 4.5 baños, cocina abierta, bar, sala de TV
-           - Patio con ka'anche's privado
-           - Piscina de 41 m²
-           - Cuarto de servicio
-           - Total: 25,469.86 ft² / 2,366.23 m²
+           - ESPACIOS: Patio con ka'anche's privado, piscina de 41 m², cuarto de servicio
+           - ÁREA CONSTRUIDA: 25,469.86 ft² / 2,366.23 m²
         
         4. ÓOL RESIDENCE WITH TOWER (4 recámaras)
            - Recámara principal y 3 recámaras dobles
            - 4 baños completos y 2 medios baños
            - Cocina abierta, bar, sala de TV
-           - Patio con ka'anche's privado
-           - Piscina de 41 m²
-           - Opción de cine, spa o gimnasio
-           - Jardín en azotea
-           - Cuarto de servicio
-           - Total: 10,375.82 ft² / 963.98 m²
+           - ESPACIOS: Patio con ka'anche's privado, piscina de 41 m², opción de cine/spa/gimnasio, jardín en azotea, cuarto de servicio
+           - ÁREA CONSTRUIDA: 10,375.82 ft² / 963.98 m²
         
         5. KIN RESIDENCE (5 recámaras)
            - Recámara principal, 2 recámaras dobles, 2 recámaras gemelas
            - 4 baños completos y 3 medios baños
            - Cocina abierta, bar, patio central
-           - Patio con ka'anche's privado
-           - Piscina y jacuzzi de 127 m²
-           - Cine, spa, gimnasio
-           - Jardín en azotea
-           - Cuarto de servicio
-           - Total: 25,469.86 ft² / 2,366.23 m²
+           - ESPACIOS: Patio con ka'anche's privado, piscina y jacuzzi de 127 m², cine, spa, gimnasio, jardín en azotea, cuarto de servicio
+           - ÁREA CONSTRUIDA: 25,469.86 ft² / 2,366.23 m²
         
         CARACTERÍSTICAS ESPECIALES:
         - Materiales auténticos: madera tzalam y camarú, mármol Fiorito
