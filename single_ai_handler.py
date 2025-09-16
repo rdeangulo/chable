@@ -132,13 +132,13 @@ class SingleAIHandler:
                 "type": "function",
                 "function": {
                     "name": "send_yucatan_location",
-                    "description": "Send the location of Chablé Yucatan via WhatsApp. Use when users ask about location, address, or how to get to the project.",
+                    "description": "Send the location of Chablé Yucatan via WhatsApp. Use when users ask about location, address, or how to get to the project. Phone number is automatically obtained from the conversation context.",
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "telefono": {"type": "string", "description": "Phone number to send location to"}
+                            "telefono": {"type": "string", "description": "Phone number to send location to (optional - will use sender's number if not provided)"}
                         },
-                        "required": ["telefono"]
+                        "required": []
                     }
                 }
             },
