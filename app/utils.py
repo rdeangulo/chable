@@ -163,7 +163,7 @@ async def get_debounced_message(whatsapp_number: str, current_message: str, mess
                 logger.info(f"📝 Buffering message #{buffer_data['message_count']} for {whatsapp_number}: '{current_message}' → Combined: '{combined_message}'")
                 return combined_message, buffer_data['message_sid'], False
             else:
-                # More than 3 seconds have passed, process the old message and start new buffer
+                # More than 1.5 seconds have passed, process the current message and start new buffer
                 old_data = message_buffer[whatsapp_number]
                 message_buffer[whatsapp_number] = {
                     'message': current_message,
@@ -171,8 +171,8 @@ async def get_debounced_message(whatsapp_number: str, current_message: str, mess
                     'message_sid': message_sid,
                     'message_count': 1
                 }
-                logger.info(f"⏰ Buffer timeout for {whatsapp_number}, processing: '{old_data['message']}'")
-                return old_data['message'], old_data['message_sid'], True
+                logger.info(f"⏰ Buffer timeout for {whatsapp_number}, processing current message: '{current_message}' (old buffered: '{old_data['message']}')")
+                return current_message, message_sid, True
         else:
             # No existing message, create new buffer
             message_buffer[whatsapp_number] = {
