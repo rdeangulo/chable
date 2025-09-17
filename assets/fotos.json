@@ -1,0 +1,192 @@
+{
+  "residencias": {
+    "kin": {
+      "nombre": "KIN Residence",
+      "descripcion": "Residencia más exclusiva con 5 recámaras, piscina y jacuzzi de 127m², cine, spa, gimnasio, jardín en azotea y cuarto de servicio",
+      "fotos": {
+        "interior": [
+          {
+            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1757450607/residencia-kin-1_vfzatf.webp",
+            "descripcion": "Interior de lujo de la residencia KIN con diseño contemporáneo, acabados premium y espacios amplios",
+            "tipo": "interior",
+            "public_id": "residencia-kin-1_vfzatf",
+            "width": 705,
+            "height": 705
+          }
+        ],
+        "planos": [
+          {
+            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1757450607/KinTOrre_sohyjz.webp",
+            "descripcion": "Plano arquitectónico de la residencia KIN mostrando la distribución de 5 recámaras, áreas sociales y amenidades",
+            "tipo": "plano",
+            "public_id": "KinTOrre_sohyjz",
+            "width": 1920,
+            "height": 1372
+          }
+        ]
+      }
+    },
+    "kuxtal": {
+      "nombre": "KUXTAL Residence",
+      "descripcion": "Residencia de 4 recámaras con piscina de 95m², terraza con ka'anche' y cuarto de servicio",
+      "fotos": {
+        "interior": [
+          {
+            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1757450608/residencias-kuxtal-1_vnpeyt.webp",
+            "descripcion": "Interior elegante de la residencia KUXTAL con 4 recámaras, diseño moderno y acabados de lujo",
+            "tipo": "interior",
+            "public_id": "residencias-kuxtal-1_vnpeyt",
+            "width": 705,
+            "height": 705
+          }
+        ],
+        "planos": [
+          {
+            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1757450607/PlanoKuxtal_ojubkc.webp",
+            "descripcion": "Plano arquitectónico de la residencia KUXTAL con distribución de 4 recámaras y piscina de 95m²",
+            "tipo": "plano",
+            "public_id": "PlanoKuxtal_ojubkc",
+            "width": 1920,
+            "height": 1646
+          }
+        ]
+      }
+    },
+    "ool": {
+      "nombre": "ÓOL Residence",
+      "descripcion": "Residencia de 3 recámaras con piscina de 75m² y terraza con ka'anche'",
+      "fotos": {
+        "interior": [
+          {
+            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1757450608/rwsidencia-ool-1_fx7f4y.webp",
+            "descripcion": "Interior acogedor de la residencia ÓOL con 3 recámaras, diseño contemporáneo y espacios funcionales",
+            "tipo": "interior",
+            "public_id": "rwsidencia-ool-1_fx7f4y",
+            "width": 705,
+            "height": 705
+          }
+        ],
+        "planos": [
+          {
+            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1757450607/PlanoOOL_pocgbv.webp",
+            "descripcion": "Plano arquitectónico de la residencia ÓOL con distribución de 3 recámaras y piscina de 75m²",
+            "tipo": "plano",
+            "public_id": "PlanoOOL_pocgbv",
+            "width": 1920,
+            "height": 1646
+          }
+        ]
+      }
+    },
+    "ool_torre": {
+      "nombre": "ÓOL WITH TOWER Residence",
+      "descripcion": "Residencia de 3 recámaras con torre, piscina de 75m² y terraza con ka'anche'",
+      "fotos": {
+        "interior": [
+          {
+            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1757450608/rwsidencia-ool-torre-1_o8egzo.webp",
+            "descripcion": "Interior exclusivo de la residencia ÓOL WITH TOWER con 3 recámaras, torre y diseño único",
+            "tipo": "interior",
+            "public_id": "rwsidencia-ool-torre-1_o8egzo",
+            "width": 705,
+            "height": 705
+          }
+        ],
+        "planos": [
+          {
+            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1757450607/PlanoOOLTorre_qrcdeh.webp",
+            "descripcion": "Plano arquitectónico de la residencia ÓOL WITH TOWER con torre, 3 recámaras y piscina de 75m²",
+            "tipo": "plano",
+            "public_id": "PlanoOOLTorre_qrcdeh",
+            "width": 1920,
+            "height": 1646
+          }
+        ]
+      }
+    },
+    "utz": {
+      "nombre": "UTZ Residence",
+      "descripcion": "Residencia de 2 recámaras con piscina de 60m² y terraza con ka'anche'",
+      "fotos": {
+        "interior": [
+          {
+            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1757450608/residencia-utz-1_fujveh.webp",
+            "descripcion": "Interior íntimo de la residencia UTZ con 2 recámaras, diseño moderno y espacios optimizados",
+            "tipo": "interior",
+            "public_id": "residencia-utz-1_fujveh",
+            "width": 705,
+            "height": 705
+          }
+        ],
+        "planos": [
+          {
+            "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1757450607/PlanoUtz_xfbifl.webp",
+            "descripcion": "Plano arquitectónico de la residencia UTZ con distribución de 2 recámaras y piscina de 60m²",
+            "tipo": "plano",
+            "public_id": "PlanoUtz_xfbifl",
+            "width": 1920,
+            "height": 1646
+          }
+        ]
+      }
+    }
+  },
+  "general": {
+    "nombre": "Chable Resort",
+    "descripcion": "Vistas generales y amenidades del resort Chable",
+    "fotos": {
+      "exterior": [
+        {
+          "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1758052999/VistaJardines_jyevic.jpg",
+          "descripcion": "Hermosos jardines tropicales del resort con vegetación exuberante y diseño paisajístico de lujo",
+          "tipo": "exterior",
+          "public_id": "VistaJardines_jyevic",
+          "width": 5304,
+          "height": 7952
+        },
+        {
+          "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1758052999/VistaAerea_dfgt4e.jpg",
+          "descripcion": "Vista aérea espectacular del resort mostrando la magnitud y belleza del complejo desde las alturas",
+          "tipo": "exterior",
+          "public_id": "VistaAerea_dfgt4e",
+          "width": 3017,
+          "height": 4023
+        },
+        {
+          "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1758052999/VistaGolf_e9388s.jpg",
+          "descripcion": "Campo de golf de clase mundial con fairways perfectos y vistas panorámicas del paisaje yucateco",
+          "tipo": "exterior",
+          "public_id": "VistaGolf_e9388s",
+          "width": 2560,
+          "height": 1439
+        }
+      ],
+      "amenidades": [
+        {
+          "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1758052999/RestauranteIxim2_zmfdmk.jpg",
+          "descripcion": "Restaurante Ixim con gastronomía de autor y ambiente sofisticado para experiencias culinarias únicas!",
+          "tipo": "amenidades",
+          "public_id": "RestauranteIxim2_zmfdmk",
+          "width": 2500,
+          "height": 1667
+        },
+        {
+          "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1758052998/EntradaChable_isklnc.jpg",
+          "descripcion": "Entrada principal del resort con arquitectura maya contemporánea y diseño de lujo que da la bienvenida",
+          "tipo": "amenidades",
+          "public_id": "EntradaChable_isklnc",
+          "width": 2500,
+          "height": 1562
+        },
+        {
+          "url": "https://res.cloudinary.com/ds3cng4pl/image/upload/f_auto,q_auto,w_1200,h_1200,c_limit/v1758052998/HotelChable%CC%81_Villa6_28_it8ok1.jpg",
+          "descripcion": "Hotel Villa Chable con arquitectura tradicional yucateca renovada, ofreciendo alojamiento de lujo",
+          "tipo": "amenidades",
+          "public_id": "HotelChablé_Villa6_28_it8ok1",
+          "width": 2000,
+          "height": 1124
+        }
+      ]
+    }
+  }
+}

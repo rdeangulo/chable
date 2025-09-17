@@ -125,9 +125,7 @@ alembic/versions/*.py
 !alembic/versions/__init__.py
 
 # Assets and media
-assets/
-uploads/
-media/
+
 
 # Node modules (if any frontend)
 node_modules/
