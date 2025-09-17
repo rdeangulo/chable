@@ -162,6 +162,20 @@ class SingleAIHandler:
                         "required": ["nombre", "telefono", "motivo"]
                     }
                 }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_contact_info",
+                    "description": "Provide official contact information for Chablé Residences ONLY when explicitly requested by the user. Do not offer this information proactively.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "tipo_contacto": {"type": "string", "description": "Type of contact requested: 'email', 'telefono', 'sitio_web', 'todos'"}
+                        },
+                        "required": ["tipo_contacto"]
+                    }
+                }
             }
         ]
     
@@ -272,6 +286,8 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
         - capture_customer_info: Capturar información del cliente (nombre, teléfono, email, ciudad, tipología, área, habitaciones, baños, presupuesto, motivación, urgencia, horario, acción)
         - send_brochure: Enviar folletos
         - send_yucatan_location: Enviar ubicación de Chablé Yucatán (NO pedir teléfono - se obtiene automáticamente)
+        - qualify_lead: Calificar y capturar leads cuando muestren interés explícito
+        - get_contact_info: Proporcionar información de contacto SOLO cuando sea solicitada explícitamente
         
         DATOS A CAPTURAR (cuando se ofrezcan):
         - Nombre completo
@@ -292,6 +308,14 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
         
         INFORMACIÓN DETALLADA DE YUCATÁN:
         Las Residencias Chablé Yucatán son refugios en los ritmos de la naturaleza, creadas como obras maestras de autenticidad y artesanía. Integran materiales locales que se armonizan perfectamente con el entorno natural.
+        
+        CONCEPTO: "UN REFUGIO EN LOS RITMOS DE LA NATURALEZA"
+        Esta casa es tu santuario. La madera tzalam y camarú crea una atmósfera cálida, mientras que el mármol Fiorito en pisos y áreas comunes proporciona una elegancia atemporal. Las fachadas de piedra natural y chukum evocan las tradiciones arquitectónicas regionales, y las ventanas de vidrio extra-claro permiten que la luz fluya libremente por todo el espacio.
+        
+        Diseñadas para ofrecer una experiencia de bienestar holística, las residencias cuentan con diversas amenidades como terraza, piscina privada y un patio de ka'anches, huertos tradicionales mayas que fomentan una conexión profunda con la tierra y las costumbres locales.
+        
+        Estos espacios son el refugio perfecto para la reflexión y la reconexión, ofreciendo una experiencia que solo se encuentra en Chablé Yucatán.
+        
         
         CARACTERÍSTICAS GENERALES DE LAS RESIDENCIAS CHABLÉ:
         - 5 recámaras de lujo
@@ -342,33 +366,34 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
            - Recámara principal y recámara doble
            - 2.5 baños, cocina abierta, bar
            - ESPACIOS: Patio con ka'anche's privado, piscina de 38 m²
-           - ÁREA CONSTRUIDA: 5,498.79 ft² / 510.91 m²
+           - Interiores: 3,918.21 ft² / 364.04 m² | Exteriores: 1,580.58 ft² / 147.87 m² | Total: 5,498.79 ft² / 510.91 m²
         
         2. KUXTAL RESIDENCE (3 recámaras)
            - Recámara principal y 2 recámaras dobles
            - 3.5 baños, cocina abierta, bar, sala de TV
            - ESPACIOS: Patio con ka'anche's privado, piscina de 38 m², cuarto de servicio
-           - ÁREA CONSTRUIDA: 6,953.64 ft² / 645.84 m²
+           - EXTRAS OPCIONALES: Fogata y Jacuzzi
+           - Interiores: 5,217.75 ft² / 484.59 m² | Exteriores: 1,735.89 ft² / 161.25 m² | Total: 6,953.64 ft² / 645.84 m²
         
         3. ÓOL RESIDENCE (4 recámaras)
            - Recámara principal y 3 recámaras dobles
            - 4.5 baños, cocina abierta, bar, sala de TV
            - ESPACIOS: Patio con ka'anche's privado, piscina de 41 m², cuarto de servicio
-           - ÁREA CONSTRUIDA: 25,469.86 ft² / 2,366.23 m²
+           - Interiores: 13,887.68 ft² / 1,289.28 m² | Exteriores: 11,592.18 ft² / 1,076.95 m² | Total: 25,469.86 ft² / 2,366.23 m²
         
         4. ÓOL RESIDENCE WITH TOWER (4 recámaras)
            - Recámara principal y 3 recámaras dobles
            - 4 baños completos y 2 medios baños
            - Cocina abierta, bar, sala de TV
            - ESPACIOS: Patio con ka'anche's privado, piscina de 41 m², opción de cine/spa/gimnasio, jardín en azotea, cuarto de servicio
-           - ÁREA CONSTRUIDA: 10,375.82 ft² / 963.98 m²
+           - Interiores: 7,470.85 ft² / 694.09 m² | Exteriores: 2,904.93 ft² / 269.89 m² | Total: 10,375.82 ft² / 963.98 m²
         
         5. KIN RESIDENCE (5 recámaras)
-           - Recámara principal, 2 recámaras dobles, 2 recámaras gemelas
+           - Recámara principal, 2 recámaras dobles con camas queen, 2 recámaras gemelas con camas queen
            - 4 baños completos y 3 medios baños
            - Cocina abierta, bar, patio central
            - ESPACIOS: Patio con ka'anche's privado, piscina y jacuzzi de 127 m², cine, spa, gimnasio, jardín en azotea, cuarto de servicio
-           - ÁREA CONSTRUIDA: 25,469.86 ft² / 2,366.23 m²
+           - Interiores: 13,887.68 ft² / 1,289.28 m² | Exteriores: 11,592.18 ft² / 1,076.95 m² | Total: 25,469.86 ft² / 2,366.23 m²
         
         ACABADOS DE LUJO:
         - Materiales auténticos: madera tzalam y camarú, mármol Fiorito
@@ -604,7 +629,7 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
                     max_results = function_args.get("max_results", 5)
                     result = self.call_vector_store(query, max_results)
                     
-                elif function_name in ["enviar_foto", "capture_customer_info", "send_brochure", "send_yucatan_location", "qualify_lead"]:
+                elif function_name in ["enviar_foto", "capture_customer_info", "send_brochure", "send_yucatan_location", "qualify_lead", "get_contact_info"]:
                     # Call the real function from execute_functions.py
                     if db and sender_info:
                         import asyncio

@@ -316,6 +316,14 @@ async def execute_function(tool_call, db: Session, sender_info=None):
             logger.error(f"Error executing provide_contact_info: {e}")
             return "Lo siento, hubo un error al procesar tu solicitud de contacto."
 
+    elif function_name == "get_contact_info":
+        try:
+            result = await get_contact_info(db, function_arguments)
+            return result["message"] if result["success"] else result["error"]
+        except Exception as e:
+            logger.error(f"Error executing get_contact_info: {e}")
+            return "Lo siento, hubo un error al obtener la información de contacto."
+
     logger.warning(f"Función {function_name} no reconocida.")
     return "Función no reconocida"
 
@@ -1163,4 +1171,60 @@ async def provide_contact_info(db: Session, data: dict) -> dict:
         return {
             "success": False,
             "error": "Lo siento, hubo un error al procesar tu solicitud. Por favor, intenta nuevamente."
+        }
+
+async def get_contact_info(db: Session, data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Proporciona información de contacto oficial de Chablé Residences SOLO cuando es solicitada explícitamente.
+    
+    Args:
+        db: Database session
+        data: Dictionary containing contact type requested
+        
+    Returns:
+        dict: Response with official contact information
+    """
+    try:
+        tipo_contacto = data.get("tipo_contacto", "todos")
+        
+        # Información de contacto oficial de Chablé Residences
+        contact_info = {
+            "email": "RESYUCATAN@CHABLEHOTELS.COM",
+            "telefono_usa_canada": "1 310 740 3233",
+            "telefono_mexico": "52 624 21307656",
+            "sitio_web": "CHABLEHOTELS.COM"
+        }
+        
+        # Construir respuesta según el tipo solicitado
+        if tipo_contacto == "email":
+            response = f"📧 Email oficial: {contact_info['email']}"
+        elif tipo_contacto == "telefono":
+            response = (
+                f"📞 Teléfonos oficiales:\n"
+                f"• USA y Canadá: {contact_info['telefono_usa_canada']}\n"
+                f"• México: {contact_info['telefono_mexico']}"
+            )
+        elif tipo_contacto == "sitio_web":
+            response = f"🌐 Sitio web oficial: {contact_info['sitio_web']}"
+        else:  # todos
+            response = (
+                f"📧 Email: {contact_info['email']}\n"
+                f"📞 USA y Canadá: {contact_info['telefono_usa_canada']}\n"
+                f"📞 México: {contact_info['telefono_mexico']}\n"
+                f"🌐 Sitio web: {contact_info['sitio_web']}"
+            )
+        
+        logger.info(f"Contact info provided: {tipo_contacto}")
+        
+        return {
+            "success": True,
+            "message": response,
+            "contact_info": contact_info
+        }
+        
+    except Exception as e:
+        logger.error(f"Error providing contact info: {str(e)}")
+        return {
+            "success": False,
+            "error": "Lo siento, hubo un error al obtener la información de contacto. Por favor, intenta nuevamente."
         }
