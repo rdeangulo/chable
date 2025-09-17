@@ -293,6 +293,50 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
         INFORMACIÓN DETALLADA DE YUCATÁN:
         Las Residencias Chablé Yucatán son refugios en los ritmos de la naturaleza, creadas como obras maestras de autenticidad y artesanía. Integran materiales locales que se armonizan perfectamente con el entorno natural.
         
+        CARACTERÍSTICAS GENERALES DE LAS RESIDENCIAS CHABLÉ:
+        - 5 recámaras de lujo
+        - Vistas de la selva maya y campo de golf
+        - Torre de cuatro niveles
+        - Cine en casa
+        - Sala de spa
+        - Gimnasio completamente equipado
+        - Terraza lounge con telescopio (bajo solicitud)
+        - Piscina de 25 metros
+        - Jacuzzi
+        - Acceso al Campo de Golf Chablé
+        - Área de parrilla con camastros dobles y sencillos
+        - Área de comedor al aire libre para hasta 10 personas
+        - Lounge semi-cubierto
+        - 56 paneles solares
+        
+        RECÁMARAS DE LUJO:
+        - 1 recámara principal con cama king
+        - 2 recámaras con 2 camas queen cada una
+        - 2 recámaras con 1 cama king cada una
+        - Closet walk-in
+        - Terraza privada
+        - Baño con vistas a la selva
+        - Bañera de piedra caliza
+        - Regaderas de lluvia (2 en la recámara principal)
+        - Ducha exterior icónica "Moon Shower"
+        - Baño con puertas corredizas
+        
+        AMENIDADES INTERIORES:
+        - Lobby
+        - Sala de estar
+        - Comedor para 12 personas
+        - Bar
+        - Cocina completamente equipada
+        - Área de almacenamiento
+        - Iluminación natural
+        - Vistas de los ka'anches (maceteros estilo maya)
+        
+        BENEFICIOS ADICIONALES:
+        - Acceso a las instalaciones de Chablé Yucatán
+        - Acceso al circuito de hidroterapia en Chablé Spa
+        - Servicio a la habitación
+        - Servicios de conserjería
+        
         TIPOS DE RESIDENCIAS DISPONIBLES:
         1. UTZ RESIDENCE (2 recámaras)
            - Recámara principal y recámara doble
@@ -326,13 +370,28 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
            - ESPACIOS: Patio con ka'anche's privado, piscina y jacuzzi de 127 m², cine, spa, gimnasio, jardín en azotea, cuarto de servicio
            - ÁREA CONSTRUIDA: 25,469.86 ft² / 2,366.23 m²
         
-        CARACTERÍSTICAS ESPECIALES:
+        ACABADOS DE LUJO:
         - Materiales auténticos: madera tzalam y camarú, mármol Fiorito
         - Fachadas de piedra natural y chukum
         - Ventanas de vidrio extra-claro
         - Ka'anche's tradicionales mayas
+        - Pisos de mármol y piedra natural
+        - Acabados en madera tropical de la región
+        - Iluminación LED de diseño
+        - Grifería y accesorios de lujo
+        - Cocinas con electrodomésticos premium
+        - Baños con acabados de mármol y piedra
+        - Closets con sistemas organizacionales de lujo
+        - Puertas y ventanas de madera maciza
+        - Detalles artesanales únicos
+        - Integración perfecta con el entorno natural
+        
+        CARACTERÍSTICAS ESPECIALES:
         - Experiencia de bienestar holística
-        - Conexión profunda con la tierra y tradiciones locales"""
+        - Conexión profunda con la tierra y tradiciones locales
+        - Diseño arquitectónico de vanguardia
+        - Sustentabilidad y eficiencia energética
+        - Tecnología domótica integrada"""
     
     def select_model(self, speed: str = "balanced") -> str:
         """
