@@ -30,6 +30,7 @@ from datetime import datetime, timezone
 from fastapi.staticfiles import StaticFiles
 from app.routes import router
 from app.routes_crm import crm_router
+from app.routes_test import router as test_router
 import logging
 import colorama
 from colorama import Fore, Style
@@ -94,6 +95,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 # Include routers
 app.include_router(router, prefix="/api", tags=["api"])
 app.include_router(crm_router)
+app.include_router(test_router, prefix="/test", tags=["test"])
 
 # Add CORS middleware
 app.add_middleware(
