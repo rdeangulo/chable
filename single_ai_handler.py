@@ -82,13 +82,13 @@ class SingleAIHandler:
                 "type": "function",
                 "function": {
                     "name": "enviar_foto",
-                    "description": "Send photos of Chablé residences (KIN, KUXTAL, ÓOL, ÓOL TORRE, UTZ). Use 'interior' or 'planos' as categoria. Use 'kin', 'kuxtal', 'ool', 'ool_torre', or 'utz' as tipo_apartamento.",
+                    "description": "Send photos of Chablé luxury residences (KIN, KUXTAL, ÓOL, ÓOL TORRE, UTZ). Use 'interior' or 'planos' as categoria. Use 'kin', 'kuxtal', 'ool', 'ool_torre', or 'utz' as tipo_residencia.",
                     "parameters": {
                         "type": "object",
                         "properties": {
                             "categoria": {"type": "string", "description": "Photo category: 'interior' or 'planos'"},
                             "subcategoria": {"type": "string", "description": "Optional subcategory"},
-                            "tipo_apartamento": {"type": "string", "description": "Residence type: 'kin', 'kuxtal', 'ool', 'ool_torre', or 'utz'"},
+                            "tipo_residencia": {"type": "string", "description": "Luxury residence type: 'kin', 'kuxtal', 'ool', 'ool_torre', or 'utz'"},
                             "area": {"type": "string", "description": "Specific area of the residence"},
                             "mensaje_acompañante": {"type": "string", "description": "Custom message to accompany the photo"}
                         },
@@ -204,7 +204,7 @@ Lead Capture: Collect and verify key prospect information when offered naturally
 - Teléfono
 - Email
 - Ciudad de interés
-- Tipología deseada (casa, apartamento, etc.)
+        - Tipología deseada (residencia de lujo, villa, casa, etc.)
 - Área de interés
 - Número de habitaciones
 - Número de baños
@@ -512,10 +512,10 @@ Privacy: Adhere strictly to the provided privacy policies for data handling and 
             mock_results = [
                 {
                     "id": f"prop_{self.store_id}_001",
-                    "categoria": "apartamento",
+                    "categoria": "residencia",
                     "area": "Playa del Carmen",
                     "precio": "$450,000 USD",
-                    "descripcion": "Hermoso apartamento cerca de la playa",
+                    "descripcion": "Hermosa residencia de lujo cerca de la playa",
                     "similarity": 0.95
                 },
                 {
@@ -748,7 +748,7 @@ if __name__ == "__main__":
     
     # Example: Process a message
     response = handler.process_message(
-        "Busco un apartamento de 2 recámaras en Playa del Carmen",
+        "Busco una residencia de lujo de 2 recámaras en Playa del Carmen",
         model_speed="balanced"
     )
     

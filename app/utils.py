@@ -942,6 +942,10 @@ def send_twilio_media_message(to_number, media_url, message_body, media_type=Non
         logger.info(f"Attempting to send {media_type} message to {to_number}")
         logger.info(f"Media URLs: {media_url_list}")
         logger.info(f"Message body: {clean_message}")
+        
+        # Ensure proper UTF-8 encoding for the message
+        if isinstance(clean_message, str):
+            clean_message = clean_message.encode('utf-8').decode('utf-8')
 
         # Create and send the message
         message = twilio_client.messages.create(

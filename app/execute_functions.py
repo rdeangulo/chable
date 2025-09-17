@@ -129,18 +129,18 @@ async def execute_function(tool_call, db: Session, sender_info=None):
             # Extract parameters with defaults
             categoria = function_arguments.get("categoria", "")
             subcategoria = function_arguments.get("subcategoria", None)
-            tipo_apartamento = function_arguments.get("tipo_apartamento", None)
+            tipo_residencia = function_arguments.get("tipo_residencia", None)
             area = function_arguments.get("area", None)
             mensaje_acompañante = function_arguments.get("mensaje_acompañante", None)
             buscar_alternativa = function_arguments.get("buscar_alternativa", True)
             
-            logger.info(f"Enviando foto: categoria={categoria}, subcategoria={subcategoria}, tipo={tipo_apartamento}")
+            logger.info(f"Enviando foto: categoria={categoria}, subcategoria={subcategoria}, tipo={tipo_residencia}")
             
             # Call the enviar_foto function
             result = enviar_foto(
                 categoria=categoria,
                 subcategoria=subcategoria,
-                tipo_apartamento=tipo_apartamento,
+                tipo_residencia=tipo_residencia,
                 area=area,
                 mensaje_acompañante=mensaje_acompañante,
                 buscar_alternativa=buscar_alternativa
@@ -898,7 +898,7 @@ def buscar_foto_alternativa(fotos_db: Dict[str, Any], categoria: str, tags: List
 def enviar_foto(
     categoria: str, 
     subcategoria: Optional[str] = None, 
-    tipo_apartamento: Optional[str] = None, 
+    tipo_residencia: Optional[str] = None, 
     area: Optional[str] = None, 
     mensaje_acompañante: Optional[str] = None,
     buscar_alternativa: bool = True
@@ -909,7 +909,7 @@ def enviar_foto(
     Args:
         categoria (str): Categoría principal de la foto ('interior', 'exterior', 'planos', 'amenidades')
         subcategoria (str, optional): Especificación dentro de la categoría (ej: 'sala', 'cocina', 'piscina')
-        tipo_apartamento (str, optional): Tipo de residencia ('kin', 'kuxtal', 'ool', 'ool_torre', 'utz')
+        tipo_residencia (str, optional): Tipo de residencia de lujo ('kin', 'kuxtal', 'ool', 'ool_torre', 'utz')
         area (str, optional): Área específica de la residencia (ej: 'sala', 'cocina', 'recamara_principal')
         mensaje_acompañante (str, optional): Mensaje personalizado que acompaña a la foto
         buscar_alternativa (bool): Si es True y no encuentra la foto exacta, buscará alternativas similares
@@ -921,7 +921,7 @@ def enviar_foto(
         # Clean input parameters
         categoria = clean_text(categoria)
         subcategoria = clean_text(subcategoria) if subcategoria else None
-        tipo_apartamento = clean_text(tipo_apartamento) if tipo_apartamento else None
+        tipo_residencia = clean_text(tipo_residencia) if tipo_residencia else None
         area = clean_text(area) if area else None
         mensaje_acompañante = clean_text(mensaje_acompañante) if mensaje_acompañante else None
         
@@ -955,7 +955,7 @@ def enviar_foto(
         
         # Determinar qué residencia buscar
         residencia_target = None
-        if tipo_apartamento:
+        if tipo_residencia:
             # Mapear nombres de residencias
             residencia_mapping = {
                 "kin": "kin",
@@ -966,7 +966,7 @@ def enviar_foto(
                 "ool with tower": "ool_torre",
                 "utz": "utz"
             }
-            residencia_key = residencia_mapping.get(tipo_apartamento.lower(), tipo_apartamento.lower())
+            residencia_key = residencia_mapping.get(tipo_residencia.lower(), tipo_residencia.lower())
             residencia_target = residencias.get(residencia_key)
         
         # Si no se especifica residencia, buscar en todas
@@ -993,15 +993,15 @@ def enviar_foto(
                 foto = categoria_fotos[0]
                 url_foto = foto.get("url")
                 caption = foto.get("descripcion")
-                residencia_nombre = residencia_target.get("nombre", tipo_apartamento)
+                residencia_nombre = residencia_target.get("nombre", tipo_residencia)
             else:
                 # Si no hay fotos en la categoría específica, buscar en otras categorías
                 for cat_key, cat_fotos in fotos_residencia.items():
                     if cat_fotos:
                         foto = cat_fotos[0]
                         url_foto = foto.get("url")
-                        caption = f"Te muestro una vista de {residencia_target.get('nombre', tipo_apartamento)}"
-                        residencia_nombre = residencia_target.get("nombre", tipo_apartamento)
+                        caption = f"Te muestro una vista de {residencia_target.get('nombre', tipo_residencia)}"
+                        residencia_nombre = residencia_target.get("nombre", tipo_residencia)
                         break
         
         # Si aún no se encuentra foto, buscar en cualquier residencia
