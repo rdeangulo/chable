@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.db import get_db_session
+from app.db import get_db
 from app.services.crm_manager import CRMManager
 from app.services.lasso_crm_service import LassoCRMService
 import logging
@@ -63,7 +63,7 @@ async def test_crm_properties():
 @router.post("/test/crm-lead-injection")
 async def test_crm_lead_injection(
     property_key: str = "yucatan",
-    db: Session = Depends(get_db_session)
+    db: Session = Depends(get_db)
 ):
     """Test CRM lead injection"""
     try:
@@ -128,7 +128,7 @@ async def test_phone_normalization():
         raise HTTPException(status_code=500, detail=f"Phone normalization test error: {str(e)}")
 
 @router.get("/test/crm-full")
-async def test_crm_full(db: Session = Depends(get_db_session)):
+async def test_crm_full(db: Session = Depends(get_db)):
     """Run full CRM integration test"""
     try:
         crm_manager = CRMManager()
