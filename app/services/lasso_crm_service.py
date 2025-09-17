@@ -44,7 +44,7 @@ class LassoCRMService:
     
     def __init__(self):
         """Initialize Lasso CRM client and configuration."""
-        self.base_url = "https://api.lasso.com"  # Update with actual Lasso API URL
+        self.base_url = "https://api.lassocrm.com"  # Correct Lasso CRM API URL
         
         # Get LASSO UID (organization/account identifier)
         self.lasso_uid = os.getenv("LASSO_UID")
@@ -225,8 +225,8 @@ class LassoCRMService:
             # Prepare lead data
             lead_data = self.prepare_lead_data(customer_data, property_key)
             
-            # Lasso CRM API endpoint (update with actual endpoint)
-            endpoint = f"{self.base_url}/api/v1/leads"
+            # Lasso CRM API endpoint
+            endpoint = f"{self.base_url}/v1/registrants"
             
             headers = {
                 "Authorization": f"Bearer {api_key}",
@@ -354,8 +354,8 @@ class LassoCRMService:
             # Normalize phone number
             normalized_phone = self.normalize_phone_number(phone)
             
-            # Lasso CRM search endpoint (update with actual endpoint)
-            endpoint = f"{self.base_url}/api/v1/leads/search"
+            # Lasso CRM search endpoint
+            endpoint = f"{self.base_url}/v1/registrants/search"
             
             headers = {
                 "Authorization": f"Bearer {api_key}",
