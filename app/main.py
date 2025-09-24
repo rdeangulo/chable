@@ -426,7 +426,7 @@ async def process_message(
                         sender_info=sender_info
                     )
                 
-                response = asyncio.run(process_ai_message())
+                response = await process_ai_message()
                 logger.info(f"[{request_id}] AI response generated: '{response[:100]}...'")
             except Exception as ai_error:
                 logger.error(f"[{request_id}] AI processing timeout or error: {ai_error}")
