@@ -491,6 +491,94 @@ async def capture_customer_info(db: Session, customer_data):
         }
 
 
+async def select_property(
+    phone_number: str,
+    lead_data: Dict[str, Any],
+    selected_property: str
+) -> Dict[str, Any]:
+    """
+    Handle property selection and route to correct CRM.
+    
+    Args:
+        phone_number: Customer's phone number
+        lead_data: Lead information
+        selected_property: Selected property key (yucatan, valle_de_guadalupe, costalegre, mar_de_cortes)
+        
+    Returns:
+        Dict with result status and next steps
+    """
+    try:
+        from app.services.property_selector import PropertySelector
+        
+        # Initialize property selector
+        selector = PropertySelector()
+        
+        # Get database session
+        db = SessionLocal()
+        
+        try:
+            # Handle property selection
+            result = await selector.handle_property_selection(
+                db=db,
+                phone_number=phone_number,
+                selected_property=selected_property,
+                lead_data=lead_data
+            )
+            
+            return result
+            
+        finally:
+            db.close()
+            
+    except Exception as e:
+        logger.error(f"Error in select_property: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+async def show_property_options(phone_number: str) -> Dict[str, Any]:
+    """
+    Show property selection options to customer.
+    
+    Args:
+        phone_number: Customer's phone number
+        
+    Returns:
+        Dict with result status and message
+    """
+    try:
+        from app.services.property_selector import PropertySelector
+        
+        # Initialize property selector
+        selector = PropertySelector()
+        
+        # Create property selection message
+        message = selector.create_property_selection_message()
+        
+        # Send message to customer
+        from app.utils import send_message
+        message_sid = send_message(phone_number, message)
+        
+        if message_sid:
+            return {
+                "success": True,
+                "message": "Property options sent to customer",
+                "message_sid": message_sid
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Failed to send property options"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error in show_property_options: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 async def qualify_lead(db: Session, lead_data):
     try:
         # First, create or get customer info

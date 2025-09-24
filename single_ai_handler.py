@@ -177,6 +177,38 @@ class SingleAIHandler:
                         "required": ["tipo_contacto"]
                     }
                 }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "show_property_options",
+                    "description": "Show property selection options to customer with interactive buttons",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {}
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "select_property",
+                    "description": "Handle property selection and route to correct CRM based on customer choice",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "selected_property": {
+                                "type": "string", 
+                                "description": "Selected property key: 'yucatan', 'valle_de_guadalupe', 'costalegre', or 'mar_de_cortes'"
+                            },
+                            "lead_data": {
+                                "type": "object",
+                                "description": "Lead information including name, phone, email, etc."
+                            }
+                        },
+                        "required": ["selected_property", "lead_data"]
+                    }
+                }
             }
         ]
     

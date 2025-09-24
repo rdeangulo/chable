@@ -87,16 +87,36 @@ async def test_simple_lead_creation():
         print("❌ Error: LASSO_API_KEY_YUCATAN environment variable not set!")
         return
     
-    # Simple test lead data
+    # Simple test lead data (Lasso expects nested structures)
     test_lead = {
-        "firstName": "Test",
-        "lastName": "Lead",
-        "email": "test@example.com",
-        "phone": "+1234567890",
-        "source": "API Test",
         "projectId": PROJECT_ID,
-        "notes": "This is a test lead created via API",
-        "tags": ["Test", "API", "Yucatan"]
+        "person": {
+            "firstName": "Test",
+            "lastName": "Lead"
+        },
+        "emails": [
+            {
+                "email": "test@example.com",
+                "type": "Email1",
+                "primary": True
+            }
+        ],
+        "phones": [
+            {
+                "phone": "+1234567890",
+                "type": "Phone1",
+                "primary": True
+            }
+        ],
+        "sourceType": {
+            "sourceType": "Online Registrant"
+        },
+        "rating": {
+            "rating": "Warm"
+        },
+        "notes": [
+            { "note": "This is a test lead created via API" }
+        ]
     }
     
     headers = {
@@ -107,11 +127,7 @@ async def test_simple_lead_creation():
     
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                f"{LASSO_BASE_URL}/v1/registrants",
-                json=test_lead,
-                headers=headers
-            )
+            response = await client.post(f"{LASSO_BASE_URL}/v1/registrants", json=test_lead, headers=headers)
             
             print(f"Status: {response.status_code}")
             print(f"Response: {response.text}")
