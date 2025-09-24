@@ -233,7 +233,11 @@ class SingleAIHandler:
                         "properties": {
                             "message": {"type": "string", "description": "Current customer message"},
                             "telefono": {"type": "string", "description": "Customer phone number"},
-                            "conversation_history": {"type": "array", "description": "Previous conversation messages for context"}
+                            "conversation_history": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                                "description": "Previous conversation messages for context"
+                            }
                         },
                         "required": ["message", "telefono"]
                     }
