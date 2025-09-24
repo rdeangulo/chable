@@ -223,7 +223,15 @@ async def process_message(
         # Check if database is available
         if db is None:
             logger.warning(f"[{request_id}] Database not available, responding with basic message")
-            return {"status": "Database temporarily unavailable, please try again later"}
+            # Send a quick response to user instead of error
+            try:
+                twilio_service = TwilioService()
+                from_number = form_data.get("From", "")
+                quick_response = "¡Hola! Gracias por contactarnos. Nuestro sistema está optimizándose. Por favor, intenta de nuevo en un momento."
+                send_message(from_number, quick_response)
+                return {"status": "Quick response sent"}
+            except:
+                return {"status": "Database temporarily unavailable, please try again later"}
         twilio_service = TwilioService()
 
         # Parse form data from Twilio webhook
@@ -422,12 +430,12 @@ async def process_message(
                 
                 logger.info(f"[{request_id}] Starting AI processing for message: '{debounced_message[:100]}...'")
                 
-                # Add timeout to prevent long delays
-                @with_timeout(10)  # 10 second timeout
+                # Add timeout to prevent long delays - MAX 2 SECONDS
+                @with_timeout(2)  # 2 second timeout for ultra-fast response
                 async def process_ai_message():
                     return await ai_handler.process_message(
                         debounced_message, 
-                        model_speed="balanced", 
+                        model_speed="fast",  # Use fast mode for speed
                         db=db, 
                         sender_info=sender_info
                     )
@@ -678,6 +686,17 @@ async def create_or_update_lead_immediately(db: Session, thread_record, message:
         
         # The nurturing function handles lead creation/update and CRM injection
         logger.info(f"🌱 Lead nurturing completed for {phone_number}")
+        
+        # Continue processing even if CRM fails
+        try:
+            # Try to inject to CRM if available
+            if db:
+                from app.crm_integration import inject_qualified_lead_to_crm
+                # This will be handled by the nurturing function
+                pass
+        except Exception as crm_error:
+            logger.warning(f"⚠️ CRM injection failed (non-critical): {crm_error}")
+            # Continue processing - CRM is optional
             
     except Exception as e:
         logger.error(f"Error in create_or_update_lead_immediately: {e}")

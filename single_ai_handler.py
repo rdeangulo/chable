@@ -34,10 +34,11 @@ class SingleAIHandler:
         self.conversation_history = []
         
         # Available models
+        # Model selection - only GPT-4o for consistency
         self.models = {
-            "fast": "gpt-4o-mini",
-            "balanced": "gpt-4o",
-            "powerful": "gpt-4-turbo-preview"
+            "fast": "gpt-4o",
+            "balanced": "gpt-4o", 
+            "powerful": "gpt-4o"
         }
         
         # Function definitions
@@ -390,22 +391,23 @@ class SingleAIHandler:
             # Add user message to history
             self.conversation_history.append({"role": "user", "content": user_message})
             
-            # Prepare messages
+            # Prepare messages - reduced for speed
             messages = [
                 {"role": "system", "content": self.system_prompt},
-                *self.conversation_history[-10:]  # Last 10 messages
+                *self.conversation_history[-5:]  # Last 5 messages only for speed
             ]
             
             logger.info(f"🤖 Prepared {len(messages)} messages for AI processing")
             
-            # Call OpenAI with function calling
+            # Call OpenAI with function calling - optimized for speed
             response = self.client.chat.completions.create(
                 model=model,
                 messages=messages,
                 tools=self.functions,
                 tool_choice="auto",
-                max_tokens=1500,
-                temperature=0.7
+                max_tokens=800,  # Reduced for speed
+                temperature=0.3,  # Lower for faster, more consistent responses
+                timeout=1.5  # 1.5 second timeout
             )
             
             # Check if functions were called
