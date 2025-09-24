@@ -399,15 +399,14 @@ class SingleAIHandler:
             
             logger.info(f"🤖 Prepared {len(messages)} messages for AI processing")
             
-            # Call OpenAI with function calling - optimized for speed
+            # Call OpenAI with function calling - let OpenAI handle timeout
             response = self.client.chat.completions.create(
                 model=model,
                 messages=messages,
                 tools=self.functions,
                 tool_choice="auto",
-                max_tokens=600,  # Further reduced for speed
-                temperature=0.2,  # Even lower for faster responses
-                timeout=1.0  # 1 second timeout
+                max_tokens=600,  # Reduced for speed
+                temperature=0.2   # Lower for faster responses
             )
             
             # Check if functions were called

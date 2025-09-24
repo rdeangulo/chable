@@ -426,21 +426,16 @@ async def process_message(
             # Process message through new AI handler with timeout protection
             try:
                 import asyncio
-                from app.timeout_util import with_timeout
                 
                 logger.info(f"[{request_id}] Starting AI processing for message: '{debounced_message[:100]}...'")
                 
-                # Add timeout to prevent long delays - MAX 1 SECOND
-                @with_timeout(1)  # 1 second timeout for ultra-fast response
-                async def process_ai_message():
-                    return await ai_handler.process_message(
-                        debounced_message, 
-                        model_speed="fast",  # Use fast mode for speed
-                        db=db, 
-                        sender_info=sender_info
-                    )
-                
-                response = await process_ai_message()
+                # Let OpenAI handle its own timeout
+                response = await ai_handler.process_message(
+                    debounced_message, 
+                    model_speed="fast",  # Use fast mode for speed
+                    db=db, 
+                    sender_info=sender_info
+                )
                 logger.info(f"[{request_id}] AI response generated: '{response[:100]}...'")
             except Exception as ai_error:
                 logger.error(f"[{request_id}] AI processing timeout or error: {ai_error}")
