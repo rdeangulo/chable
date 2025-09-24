@@ -430,8 +430,8 @@ async def process_message(
                 
                 logger.info(f"[{request_id}] Starting AI processing for message: '{debounced_message[:100]}...'")
                 
-                # Add timeout to prevent long delays - MAX 1.5 SECONDS
-                @with_timeout(1.5)  # 1.5 second timeout for ultra-fast response
+                # Add timeout to prevent long delays - MAX 1 SECOND
+                @with_timeout(1)  # 1 second timeout for ultra-fast response
                 async def process_ai_message():
                     return await ai_handler.process_message(
                         debounced_message, 
