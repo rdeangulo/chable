@@ -637,12 +637,16 @@ async def create_or_update_lead_immediately(db: Session, thread_record, message:
             # Get conversation history for context
             conversation_history = []
             try:
-                thread_record = db.query(Thread).filter_by(phone_number=phone_number).first()
+                thread_record = db.query(Thread).filter_by(sender=phone_number).first()
                 if thread_record and thread_record.conversation_data:
                     conversation_data = json.loads(thread_record.conversation_data)
                     conversation_history = [msg.get("content", "") for msg in conversation_data.get("messages", [])]
+                    logger.info(f"📚 Retrieved {len(conversation_history)} messages from conversation history")
+                else:
+                    logger.info(f"📚 No conversation history found for {phone_number}")
             except Exception as e:
                 logger.warning(f"Could not retrieve conversation history: {e}")
+                conversation_history = []
             
             nurturing_data = {
                 "message": message,
@@ -650,7 +654,7 @@ async def create_or_update_lead_immediately(db: Session, thread_record, message:
                 "conversation_history": conversation_history
             }
             
-            nurturing_result = asyncio.run(nurture_lead_progression(db, nurturing_data))
+            nurturing_result = await nurture_lead_progression(db, nurturing_data)
             
             if nurturing_result.get("success"):
                 lead_data = nurturing_result.get("lead_data", {})
