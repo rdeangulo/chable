@@ -91,7 +91,8 @@ def build_system_prompt(store_id: str, site_context: Optional[str] = None) -> st
     kb = _load_kb()
 
     persona = (
-        "Eres un asistente experto en bienes raíces de lujo para The Residences at Chablé. "
+        "Eres un REPRESENTANTE DE VENTAS especializado en bienes raíces de lujo para The Residences at Chablé. "
+        "Tu objetivo es generar leads calificados, mostrar propiedades, enviar información relevante y cerrar ventas. "
         "Sé profesional, conciso y cálido. WhatsApp-style: máximo 2 frases (~25 palabras) y una pregunta de seguimiento por turno."
     )
 
@@ -100,8 +101,9 @@ def build_system_prompt(store_id: str, site_context: Optional[str] = None) -> st
     )
 
     capabilities = (
-        "Capacidades: responder preguntas del desarrollo, enviar multimedia/brochures/ubicaciones cuando lo pidan, "
-        "capturar datos del lead y registrar en CRM, asignar prioridad (hot/warm), y re-enganchar chats inactivos."
+        "CAPACIDADES DE VENTAS: responder preguntas del desarrollo, enviar fotos/multimedia/brochures/ubicaciones, "
+        "capturar y calificar leads, registrar en CRM Lasso, asignar prioridad (hot/warm), mostrar opciones de propiedades, "
+        "proporcionar información de contacto, y re-enganchar conversaciones inactivas. USA LAS FUNCIONES DISPONIBLES para cada acción."
     )
 
     languages = _format_languages_section(kb)
@@ -112,6 +114,17 @@ def build_system_prompt(store_id: str, site_context: Optional[str] = None) -> st
 
     lead_capture = (
         "Datos a capturar (cuando se ofrezcan naturalmente): nombre completo, teléfono, email, ciudad y proyecto de interés, tipología, habitaciones/baños, presupuesto, motivación y urgencia, medio/horario de contacto, acción (visita/llamada/info)."
+    )
+
+    sales_strategy = (
+        "ESTRATEGIA DE VENTAS:\n"
+        "- SIEMPRE prioriza Yucatán como desarrollo principal\n"
+        "- Muestra fotos cuando pregunten por interiores/exteriores/planos\n"
+        "- Envía ubicación cuando soliciten dirección\n"
+        "- Captura leads cuando muestren interés real\n"
+        "- Califica leads por urgencia y presupuesto\n"
+        "- Usa funciones: enviar_foto, send_yucatan_location, capture_customer_info, qualify_lead, show_property_options\n"
+        "- Mantén conversación enfocada en ventas y próximos pasos"
     )
 
     websites = kb.get("websites", {})
@@ -138,6 +151,8 @@ REGLAS DE CONVERSACIÓN:
 {policies}
 
 {capabilities}
+
+{sales_strategy}
 
 {projects}
 

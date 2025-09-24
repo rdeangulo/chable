@@ -118,14 +118,13 @@ class SingleAIHandler:
                 "type": "function",
                 "function": {
                     "name": "send_brochure",
-                    "description": "Send property brochure",
+                    "description": "Send property brochure via WhatsApp",
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "telefono": {"type": "string"},
-                            "tipo_propiedad": {"type": "string"}
+                            "tipo_propiedad": {"type": "string", "description": "Type of property brochure to send"}
                         },
-                        "required": ["telefono"]
+                        "required": []
                     }
                 }
             },
@@ -136,9 +135,7 @@ class SingleAIHandler:
                     "description": "Send the location of Chablé Yucatan via WhatsApp. Use ONLY when users explicitly ask about location, address, or how to get to the project. Do not proactively offer location unless specifically requested.",
                     "parameters": {
                         "type": "object",
-                        "properties": {
-                            "telefono": {"type": "string", "description": "Phone number to send location to (optional - will use sender's number if not provided)"}
-                        },
+                        "properties": {},
                         "required": []
                     }
                 }
@@ -427,38 +424,22 @@ class SingleAIHandler:
                     max_results = function_args.get("max_results", 5)
                     result = self.call_vector_store(query, max_results)
                     
-                elif function_name in ["enviar_foto", "capture_customer_info", "send_brochure", "send_yucatan_location", "qualify_lead", "get_contact_info"]:
+                elif function_name in ["enviar_foto", "capture_customer_info", "send_brochure", "send_yucatan_location", "qualify_lead", "get_contact_info", "show_property_options", "select_property"]:
                     # Call the real function from execute_functions.py
                     if db and sender_info:
-                        import asyncio
                         try:
-                            # Create a new event loop for this thread if needed
-                            try:
-                                loop = asyncio.get_event_loop()
-                            except RuntimeError:
-                                loop = asyncio.new_event_loop()
-                                asyncio.set_event_loop(loop)
-                            
                             # Prepare the tool_call data
                             tool_call_data = {
                                 "function_name": function_name,
                                 "arguments": json.dumps(function_args)
                             }
                             
-                            # Run the async function
-                            if loop.is_running():
-                                # If we're already in an async context, create a task
-                                import concurrent.futures
-                                with concurrent.futures.ThreadPoolExecutor() as executor:
-                                    future = executor.submit(
-                                        lambda: asyncio.run(execute_function(tool_call_data, db, sender_info))
-                                    )
-                                    result = future.result()
-                            else:
-                                result = loop.run_until_complete(execute_function(tool_call_data, db, sender_info))
+                            # Execute function synchronously using asyncio.run
+                            import asyncio
+                            result = asyncio.run(execute_function(tool_call_data, db, sender_info))
                                 
                         except Exception as e:
-                            logger.error(f"Error executing async function {function_name}: {e}")
+                            logger.error(f"Error executing function {function_name}: {e}")
                             result = f"Error ejecutando función: {str(e)}"
                     else:
                         result = f"Función {function_name} requiere contexto de base de datos"

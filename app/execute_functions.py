@@ -113,14 +113,11 @@ async def execute_function(tool_call, db: Session, sender_info=None):
         else:
             function_arguments = {}
 
-    # Add sender information if available
+    # Add sender information if available (WhatsApp assumed)
     if sender_info:
-        # Only set telefono for WhatsApp users, not web widget users
-        platform = sender_info.get("platform", "whatsapp")
-        if platform.lower() == "whatsapp":
-            function_arguments["telefono"] = sender_info.get("number", "")
-        # Always set the source
-        function_arguments["fuente"] = platform
+        # Always set phone number since all conversations are WhatsApp
+        function_arguments["telefono"] = sender_info.get("number", "")
+        function_arguments["fuente"] = "WhatsApp"
 
 
     # Handle enviar_foto function
@@ -188,11 +185,12 @@ async def execute_function(tool_call, db: Session, sender_info=None):
 
     elif function_name == "send_brochure":
         try:
-            telefono = function_arguments.get("telefono") or sender_info.get("number", "")
+            # Get phone number from sender_info (WhatsApp assumed)
+            telefono = sender_info.get("number", "") if sender_info else ""
             if not telefono:
                 return json.dumps({
                     "success": False,
-                    "error": "Número de teléfono requerido"
+                    "error": "No se pudo obtener número de WhatsApp"
                 })
             
             result = send_brochure(telefono)
@@ -279,13 +277,13 @@ async def execute_function(tool_call, db: Session, sender_info=None):
 
     elif function_name == "send_yucatan_location":
         try:
-            # Get the sender's phone number
-            phone_number = sender_info.get("number") if sender_info else function_arguments.get("telefono")
+            # Get the sender's phone number from sender_info (WhatsApp assumed)
+            phone_number = sender_info.get("number") if sender_info else ""
 
             if not phone_number:
                 return {
                     "success": False,
-                    "error": "No se pudo enviar la ubicación porque no se encontró un número de teléfono."
+                    "error": "No se pudo enviar la ubicación porque no se encontró un número de WhatsApp."
                 }
 
             # Send the location
@@ -1121,18 +1119,10 @@ def enviar_foto(
         logger.info(f"Enviando foto desde URL: {url_foto}")
         logger.info(f"Mensaje: {mensaje_final}")
         
-        # Optimize image URL for WhatsApp (5MB limit) using Cloudinary transformations
-        if url_foto and "cloudinary.com" in url_foto:
-            # Add Cloudinary transformations to compress and optimize for WhatsApp
-            # Insert transformations before the version (v1757450607)
-            if "/upload/v" in url_foto:
-                # Add quality reduction and format optimization
-                optimized_url = url_foto.replace(
-                    "/upload/v",
-                    "/upload/q_auto:low,f_auto,w_1200,h_1200,c_limit/v"
-                )
-                logger.info(f"Optimized URL for WhatsApp: {optimized_url}")
-                url_foto = optimized_url
+        # Cloudinary URLs are already optimized for WhatsApp in fotos.json
+        # No additional optimization needed since images are pre-optimized with:
+        # f_auto,q_auto,w_1200,h_1200,c_limit
+        logger.info(f"Using pre-optimized Cloudinary URL: {url_foto}")
         
         # Simulamos la respuesta exitosa
         return {
