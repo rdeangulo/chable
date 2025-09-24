@@ -39,6 +39,12 @@ class LassoCRMService:
             "name": "Yucatan",
             "display_name": "Yucatan",
             "api_key_env": "LASSO_API_KEY_YUCATAN"
+        },
+        "mar_de_cortes": {
+            "id": 24778,
+            "name": "Mar de Cortes",
+            "display_name": "Mar de Cortes",
+            "api_key_env": "LASSO_API_KEY_MAR_DE_CORTES"
         }
     }
     
@@ -187,36 +193,48 @@ class LassoCRMService:
         
         logger.info(f"Lasso CRM lead data - first_name: '{first_name}', last_name: '{last_name}', phone: '{phone}'")
         
-        # Prepare lead data according to Lasso CRM format
+        # Prepare lead data according to Lasso CRM format (based on API response example)
         lead_data = {
-            "lasso_uid": self.lasso_uid,  # Organization/account identifier
-            "property_id": property_info["id"],
-            "property_name": property_info["name"],
-            "contact": {
-                "first_name": first_name,
-                "last_name": last_name,
-                "email": customer_data.get("email", ""),
-                "phone": phone,
-                "source": customer_data.get("fuente", "WhatsApp"),
-                "lead_source": "WhatsApp Bot",
-                "notes": f"Lead from WhatsApp Bot - {customer_data.get('motivo_interes', 'General inquiry')}"
+            "person": {
+                "firstName": first_name,
+                "lastName": last_name,
+                "company": customer_data.get("empresa", ""),
+                "contactPreference": "any",
+                "gender": customer_data.get("genero", ""),
+                "nickname": first_name
             },
-            "lead_details": {
-                "interest_level": self._normalize_interest_level(customer_data.get("urgencia_compra", "medio")),
-                "budget_min": customer_data.get("presupuesto_min"),
-                "budget_max": customer_data.get("presupuesto_max"),
-                "property_type": customer_data.get("tipo_propiedad", ""),
-                "city_interest": customer_data.get("ciudad_interes", ""),
-                "visit_requested": customer_data.get("desea_visita", False),
-                "call_requested": customer_data.get("desea_llamada", False),
-                "information_requested": customer_data.get("desea_informacion", False)
+            "emails": [
+                {
+                    "email": customer_data.get("email", ""),
+                    "type": "Personal",
+                    "primary": True
+                }
+            ] if customer_data.get("email") else [],
+            "phones": [
+                {
+                    "phone": phone,
+                    "type": "Mobile",
+                    "primary": True
+                }
+            ],
+            "project": {
+                "projectId": property_info["id"],
+                "name": property_info["name"]
             },
-            "metadata": {
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "platform": customer_data.get("sender_platform", "WhatsApp"),
-                "thread_id": customer_data.get("thread_id"),
-                "conversation_summary": customer_data.get("conversation_summary", "")
-            }
+            "sourceType": {
+                "sourceType": "WhatsApp Bot"
+            },
+            "secondarySourceType": {
+                "secondarySourceType": customer_data.get("fuente", "WhatsApp")
+            },
+            "rating": {
+                "rating": self._normalize_interest_level(customer_data.get("urgencia_compra", "medio")).upper()
+            },
+            "notes": [
+                {
+                    "note": f"Lead from WhatsApp Bot - {customer_data.get('motivo_interes', 'General inquiry')}"
+                }
+            ] if customer_data.get("motivo_interes") else []
         }
         
         return lead_data
@@ -234,7 +252,7 @@ class LassoCRMService:
         else:
             return "medium"
     
-    async def create_lead(self, customer_data: Dict[str, Any], property_key: str) -> Optional[str]:
+    async def create_lead(self, customer_data: Dict[str, Any], property_key: str) -> Dict[str, Any]:
         """
         Create a lead in Lasso CRM for the specified property.
         
@@ -243,13 +261,13 @@ class LassoCRMService:
             property_key: Property identifier
             
         Returns:
-            Lead ID if successful, None otherwise
+            Dictionary with success status and details
         """
         # Get API key for this specific property
         api_key = self.get_property_api_key(property_key)
         if not api_key:
             logger.error(f"API key not configured for property {property_key}")
-            return None
+            return {"success": False, "error": "API key not configured", "details": f"No API key for property {property_key}"}
         
         try:
             # Prepare lead data
@@ -287,14 +305,28 @@ class LassoCRMService:
                 lead_id = result.get("id") or result.get("lead_id")
                 logger.info(f"Successfully created Lasso CRM lead {lead_id} for property {property_key}")
                 
-                return str(lead_id) if lead_id else None
+                return {
+                    "success": True,
+                    "lead_id": str(lead_id) if lead_id else None,
+                    "response": result
+                }
                 
         except httpx.HTTPStatusError as e:
-            logger.error(f"Lasso CRM API error: {e.response.status_code} - {e.response.text}")
-            return None
+            error_msg = f"Lasso CRM API error: {e.response.status_code} - {e.response.text}"
+            logger.error(error_msg)
+            return {
+                "success": False,
+                "error": f"HTTP {e.response.status_code}",
+                "details": e.response.text
+            }
         except Exception as e:
-            logger.error(f"Error creating Lasso CRM lead: {e}")
-            return None
+            error_msg = f"Error creating Lasso CRM lead: {e}"
+            logger.error(error_msg)
+            return {
+                "success": False,
+                "error": "Unknown error",
+                "details": str(e)
+            }
     
     async def update_lead(self, lead_id: str, customer_data: Dict[str, Any], property_key: str) -> bool:
         """
