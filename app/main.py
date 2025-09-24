@@ -108,6 +108,7 @@ app.add_middleware(
 )
 
 @app.get("/")
+@app.head("/")
 async def index():
     return {"status": "working", "version": "2.0.0", "ai_system": "single_handler"}
 
@@ -218,6 +219,11 @@ async def process_message(
     
     try:
         logger.info(f"[{request_id}] Starting WhatsApp message processing")
+        
+        # Check if database is available
+        if db is None:
+            logger.warning(f"[{request_id}] Database not available, responding with basic message")
+            return {"status": "Database temporarily unavailable, please try again later"}
         twilio_service = TwilioService()
 
         # Parse form data from Twilio webhook

@@ -26,5 +26,5 @@ try:
     logger.info("Database initialization complete!")
 
 except Exception as e:
-    logger.error(f"Error initializing database: {e}")
-    sys.exit(1)
+    logger.warning(f"Database initialization failed (will retry on first request): {e}")
+    # Don't exit - let the app start and retry database connection on first request

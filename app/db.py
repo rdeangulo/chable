@@ -53,8 +53,21 @@ def get_db():
     Yields:
         Session: A SQLAlchemy database session
     """
-    db = SessionLocal()
+    db = None
     try:
+        db = SessionLocal()
+        # Test the connection
+        db.execute("SELECT 1")
         yield db
+    except Exception as e:
+        if db:
+            db.close()
+        # Log the error but don't crash the app
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Database connection failed: {e}")
+        # Return a mock session that won't crash the app
+        yield None
     finally:
-        db.close()
+        if db:
+            db.close()
