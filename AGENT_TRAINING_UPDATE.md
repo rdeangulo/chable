@@ -202,3 +202,41 @@ Enhanced city mapping to better route leads to appropriate properties:
 
 The agent is now strategically positioned to maximize Yucatan leads while capturing interest in all 4 properties! 🎯
 
+---
+
+## September 2025 Update: Structured KB + Prompt Builder
+
+### What changed
+- Introduced a structured knowledge base at `app/kb/knowledge_base.json` with projects, websites, languages, policies, CRM notes, and sales contacts.
+- Added `app/prompt_builder.py` to compose the system prompt dynamically from the KB and brand guardrails.
+- Refactored `single_ai_handler.py` to use the prompt builder so updates are data-driven.
+
+### Guardrails now enforced
+- No cross-development info; redirect to the correct site to register with broker in situ.
+- If the agent does not know an answer, it asks the prospect to register to be contacted by the on-site broker.
+- No list prices; require registration for latest pricing/availability.
+- Legal/tax info is courtesy only; recommend consulting professional advisors.
+- Never use media labeled ARCHIVE or marked as old/“viejo”.
+
+### Multilingual support
+Spanish, English, Mandarin, Hindi, Arabic, Russian, French, German. The agent auto-adapts language to the user.
+
+### CRM guidance (no secrets in code/docs)
+- Platform: ECI Lasso CRM
+- Minimal capture: firstName, lastName, email, phone, source, notes
+- Send interests and lead scoring; do not expose credentials or internal URLs.
+
+### How to update content going forward
+1. Edit `app/kb/knowledge_base.json` to add/adjust facts (projects, contacts, policies, sites, languages).
+2. Restart the app; the prompt is rebuilt automatically from the KB.
+3. For larger narrative changes, extend `app/prompt_builder.py` formatters.
+
+### Coverage from client brief
+- Project names, precise locations (with GPS), and official websites added.
+- Sales contacts per development added.
+- Policies aligned: registration-first pricing, no cross-development, legal disclaimers, media hygiene.
+- Languages expanded to match requirements.
+
+Open items to incorporate later (optional)
+- Detailed unit specs, amenities lists, financing timeline, buying process steps, and regional attractions can be appended to the KB in structured blocks when approved for public-facing answers.
+
