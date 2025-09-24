@@ -628,134 +628,44 @@ async def create_or_update_lead_immediately(db: Session, thread_record, message:
         from app.models import CustomerInfo, QualifiedLead
         from app.crm_integration import inject_qualified_lead_to_crm
         
-        # Extract name from profile_name or message
-        full_name = profile_name if profile_name else ""
-        if not full_name and message:
-            logger.info(f"Attempting to extract name from message: '{message[:50]}...'")
-            # Try to extract name from message
-            import re
-            name_patterns = [
-                r"me llamo (\w+)",
-                r"soy (\w+)",
-                r"mi nombre es (\w+)",
-                r"me llamo (\w+ \w+)",
-                r"soy (\w+ \w+)",
-                r"mi nombre es (\w+ \w+)"
-            ]
-            for pattern in name_patterns:
-                match = re.search(pattern, message.lower())
-                if match:
-                    full_name = match.group(1).title()
-                    logger.info(f"Extracted name from message: {full_name}")
-                    break
-        
-        # Determine property interest from message (optional for initial creation)
-        property_interest = ""
-        message_lower = message.lower()
-        logger.info(f"Analyzing message for property interest: '{message[:100]}...'")
-        
-        if any(word in message_lower for word in ["yucatan", "yucatán", "riviera maya", "cancun", "playa del carmen"]):
-            property_interest = "yucatan"
-        elif any(word in message_lower for word in ["valle de guadalupe", "baja california", "ensenada", "vino"]):
-            property_interest = "valle_de_guadalupe"
-        elif any(word in message_lower for word in ["costalegre", "jalisco", "guadalajara", "puerto vallarta"]):
-            property_interest = "costalegre"
-        elif any(word in message_lower for word in ["mar de cortes", "cortes"]):
-            property_interest = "mar_de_cortes"
-        else:
-            property_interest = "yucatan"  # Default to Yucatan as primary focus
-        
-        logger.info(f"Detected property interest: {property_interest}")
-        
-        # Determine lead rating based on message content
-        lead_rating = "initial"
-        if any(word in message_lower for word in ["comprar", "comprar", "invertir", "inversión", "presupuesto", "precio", "costo"]):
-            lead_rating = "warm"
-        if any(word in message_lower for word in ["urgente", "inmediato", "esta semana", "pronto", "visita", "llamada", "contacto"]):
-            lead_rating = "hot"
-        
-        logger.info(f"Determined lead rating: {lead_rating}")
-        
-        # Create lead immediately if we have name and phone (property interest is optional)
-        if not full_name and not profile_name:
-            logger.warning("No name available for lead creation, using phone number as identifier")
-            full_name = f"Cliente {phone_number[-4:]}"  # Use last 4 digits as fallback
-        
-        # Check if customer already exists
-        existing_customer = db.query(CustomerInfo).filter_by(telefono=phone_number).first()
-        
-        if not existing_customer:
-            # Create new customer
-            customer = CustomerInfo(
-                nombre=full_name,
-                telefono=phone_number,
-                fuente="AI Agent",
-                ciudad_interes=property_interest
-            )
-            db.add(customer)
-            db.commit()
-            db.refresh(customer)
-            logger.info(f"Created new customer: {customer.id}")
-        else:
-            # Update existing customer
-            if full_name and not existing_customer.nombre:
-                existing_customer.nombre = full_name
-            if property_interest and not existing_customer.ciudad_interes:
-                existing_customer.ciudad_interes = property_interest
-            db.commit()
-            customer = existing_customer
-        
-        # Check if qualified lead already exists
+        # Use AI assistant function to nurture lead progression
+        logger.info(f"🌱 Using AI assistant to nurture lead progression")
         try:
-            existing_lead = db.query(QualifiedLead).filter_by(telefono=phone_number).first()
-        except Exception as e:
-            logger.error(f"Database query error: {e}")
-            # Try to create lead without lead_rating column
-            existing_lead = None
-        
-        if not existing_lead:
-            # Create new qualified lead (without lead_rating for now)
-            lead = QualifiedLead(
-                customer_info_id=customer.id,
-                nombre=full_name,
-                telefono=phone_number,
-                email="",
-                fuente="AI Agent",
-                proyecto_interes=property_interest,
-                ciudad_interes=property_interest,
-                motivo_interes="interes_inicial",
-                urgencia_compra="sin_urgencia",
-                desea_informacion=True,
-                conversation_summary=f"Lead creado automáticamente - Rating: {lead_rating}"
-            )
-            db.add(lead)
-            db.commit()
-            db.refresh(lead)
-            logger.info(f"Created new qualified lead: {lead.id} with rating: {lead_rating}")
-        else:
-            # Update existing lead
-            if full_name and not existing_lead.nombre:
-                existing_lead.nombre = full_name
-            if property_interest and not existing_lead.proyecto_interes:
-                existing_lead.proyecto_interes = property_interest
-                existing_lead.ciudad_interes = property_interest
+            from app.execute_functions import nurture_lead_progression
+            import asyncio
             
-            # Update conversation summary with rating info
-            existing_lead.conversation_summary = f"Lead actualizado - Rating: {lead_rating}"
-            logger.info(f"Updated lead {existing_lead.id} with rating: {lead_rating}")
+            # Get conversation history for context
+            conversation_history = []
+            try:
+                thread_record = db.query(Thread).filter_by(phone_number=phone_number).first()
+                if thread_record and thread_record.conversation_data:
+                    conversation_data = json.loads(thread_record.conversation_data)
+                    conversation_history = [msg.get("content", "") for msg in conversation_data.get("messages", [])]
+            except Exception as e:
+                logger.warning(f"Could not retrieve conversation history: {e}")
             
-            db.commit()
-            lead = existing_lead
-        
-        # Inject to CRM
-        try:
-            crm_result = await inject_qualified_lead_to_crm(db, lead)
-            if crm_result.get("success"):
-                logger.info(f"Successfully injected lead {lead.id} to CRM")
+            nurturing_data = {
+                "message": message,
+                "telefono": phone_number,
+                "conversation_history": conversation_history
+            }
+            
+            nurturing_result = asyncio.run(nurture_lead_progression(db, nurturing_data))
+            
+            if nurturing_result.get("success"):
+                lead_data = nurturing_result.get("lead_data", {})
+                progression_level = lead_data.get("progression_level", "cold")
+                nurturing_actions = lead_data.get("nurturing_actions", [])
+                logger.info(f"✅ AI nurtured lead to {progression_level} level")
+                logger.info(f"🌱 Next actions: {nurturing_actions}")
             else:
-                logger.error(f"Failed to inject lead {lead.id} to CRM: {crm_result.get('errors')}")
+                logger.warning(f"⚠️ AI lead nurturing failed, using fallback")
+                
         except Exception as e:
-            logger.error(f"Error injecting lead to CRM: {e}")
+            logger.error(f"❌ Error in AI lead nurturing: {e}")
+        
+        # The nurturing function handles lead creation/update and CRM injection
+        logger.info(f"🌱 Lead nurturing completed for {phone_number}")
             
     except Exception as e:
         logger.error(f"Error in create_or_update_lead_immediately: {e}")

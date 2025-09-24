@@ -157,14 +157,44 @@ class LassoCRMService:
         # Normalize phone number
         phone = self.normalize_phone_number(customer_data.get("telefono", ""))
         
+        # Extract and validate name - ensure we have both first and last name
+        full_name = customer_data.get("nombre", "").strip()
+        if not full_name:
+            # Use phone number as fallback name
+            phone_digits = ''.join(filter(str.isdigit, phone))
+            full_name = f"Cliente {phone_digits[-4:]}" if phone_digits else "Cliente WhatsApp"
+        
+        # Split name into first and last name - ensure we have both
+        name_parts = full_name.split()
+        if len(name_parts) < 2:
+            # If we don't have both first and last name, create a complete name
+            if len(name_parts) == 1:
+                full_name = f"{name_parts[0]} WhatsApp"
+                name_parts = full_name.split()
+            else:
+                phone_digits = ''.join(filter(str.isdigit, phone))
+                full_name = f"Cliente {phone_digits[-4:]}" if phone_digits else "Cliente WhatsApp"
+                name_parts = full_name.split()
+        
+        first_name = name_parts[0] if name_parts else "Cliente"
+        last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else "WhatsApp"
+        
+        # Final validation - ensure we have both first and last name
+        if not first_name or not last_name:
+            logger.error(f"Invalid name structure: first_name='{first_name}', last_name='{last_name}'")
+            first_name = "Cliente"
+            last_name = "WhatsApp"
+        
+        logger.info(f"Lasso CRM lead data - first_name: '{first_name}', last_name: '{last_name}', phone: '{phone}'")
+        
         # Prepare lead data according to Lasso CRM format
         lead_data = {
             "lasso_uid": self.lasso_uid,  # Organization/account identifier
             "property_id": property_info["id"],
             "property_name": property_info["name"],
             "contact": {
-                "first_name": customer_data.get("nombre", "").split()[0] if customer_data.get("nombre") else "",
-                "last_name": " ".join(customer_data.get("nombre", "").split()[1:]) if customer_data.get("nombre") and len(customer_data.get("nombre", "").split()) > 1 else "",
+                "first_name": first_name,
+                "last_name": last_name,
                 "email": customer_data.get("email", ""),
                 "phone": phone,
                 "source": customer_data.get("fuente", "WhatsApp"),

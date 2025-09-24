@@ -1308,3 +1308,262 @@ async def get_contact_info(db: Session, data: Dict[str, Any]) -> Dict[str, Any]:
             "success": False,
             "error": "Lo siento, hubo un error al obtener la información de contacto. Por favor, intenta nuevamente."
         }
+
+async def validate_and_extract_name(db: Session, data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Validate and extract customer name from message or profile.
+    This function ensures we have both first and last name for CRM requirements.
+    
+    Args:
+        db: Database session
+        data: Dictionary containing message, profile_name, phone_number
+        
+    Returns:
+        Dictionary with validated name information
+    """
+    try:
+        message = data.get("message", "")
+        profile_name = data.get("profile_name", "")
+        phone_number = data.get("telefono", "")
+        
+        logger.info(f"🔍 Validating name extraction for {phone_number}")
+        logger.info(f"📝 Message: '{message[:50]}...'")
+        logger.info(f"👤 Profile name: '{profile_name}'")
+        
+        # Extract name from profile_name or message
+        full_name = profile_name if profile_name else ""
+        
+        if not full_name and message:
+            logger.info(f"🔍 Attempting to extract name from message")
+            # Try to extract name from message using patterns
+            import re
+            name_patterns = [
+                r"me llamo (\w+)",
+                r"soy (\w+)",
+                r"mi nombre es (\w+)",
+                r"me llamo (\w+ \w+)",
+                r"soy (\w+ \w+)",
+                r"mi nombre es (\w+ \w+)"
+            ]
+            for pattern in name_patterns:
+                match = re.search(pattern, message.lower())
+                if match:
+                    full_name = match.group(1).title()
+                    logger.info(f"✅ Extracted name from message: {full_name}")
+                    break
+        
+        # Ensure we have both first and last name for CRM requirements
+        name_parts = full_name.strip().split() if full_name else []
+        
+        if len(name_parts) < 2:
+            # Create complete name if we don't have both parts
+            if len(name_parts) == 1:
+                full_name = f"{name_parts[0]} WhatsApp"
+                logger.info(f"🔄 Enhanced single name: {full_name}")
+            else:
+                # Use phone number as fallback
+                phone_digits = ''.join(filter(str.isdigit, phone_number))
+                full_name = f"Cliente {phone_digits[-4:]}" if phone_digits else "Cliente WhatsApp"
+                logger.info(f"🔄 Created fallback name: {full_name}")
+        
+        # Final validation
+        final_name_parts = full_name.strip().split()
+        first_name = final_name_parts[0] if final_name_parts else "Cliente"
+        last_name = " ".join(final_name_parts[1:]) if len(final_name_parts) > 1 else "WhatsApp"
+        
+        logger.info(f"✅ Final name validation - first: '{first_name}', last: '{last_name}'")
+        
+        return {
+            "success": True,
+            "message": "Name validated successfully",
+            "name_data": {
+                "full_name": full_name,
+                "first_name": first_name,
+                "last_name": last_name,
+                "is_extracted": profile_name == "" and message != "",
+                "is_fallback": len(name_parts) < 2
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Error validating name: {e}")
+        return {
+            "success": False,
+            "message": f"Error validating name: {str(e)}",
+            "name_data": {
+                "full_name": "Cliente WhatsApp",
+                "first_name": "Cliente",
+                "last_name": "WhatsApp",
+                "is_extracted": False,
+                "is_fallback": True
+            }
+        }
+
+async def nurture_lead_progression(db: Session, data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Nurture and update lead progression based on conversation analysis.
+    This function analyzes the conversation to determine lead progression from cold to hot.
+    
+    Args:
+        db: Database session
+        data: Dictionary containing conversation data, message, phone_number
+        
+    Returns:
+        Dictionary with lead nurturing results
+    """
+    try:
+        message = data.get("message", "")
+        phone_number = data.get("telefono", "")
+        conversation_history = data.get("conversation_history", [])
+        
+        logger.info(f"🌱 Nurturing lead progression for {phone_number}")
+        logger.info(f"📝 Analyzing message: '{message[:50]}...'")
+        
+        # Analyze conversation for lead progression indicators
+        progression_indicators = {
+            "cold": {
+                "keywords": ["hola", "buenos días", "información", "precio", "ubicación"],
+                "intent": "initial_inquiry"
+            },
+            "warm": {
+                "keywords": ["comprar", "invertir", "presupuesto", "precio", "costo", "interesado", "me interesa"],
+                "intent": "buying_interest"
+            },
+            "hot": {
+                "keywords": ["urgente", "inmediato", "esta semana", "pronto", "visita", "llamada", "contacto", "cuando", "ahora"],
+                "intent": "immediate_action"
+            }
+        }
+        
+        # Analyze current message for progression indicators
+        message_lower = message.lower()
+        current_indicators = []
+        
+        for level, indicators in progression_indicators.items():
+            for keyword in indicators["keywords"]:
+                if keyword in message_lower:
+                    current_indicators.append({
+                        "level": level,
+                        "keyword": keyword,
+                        "intent": indicators["intent"]
+                    })
+        
+        # Analyze conversation history for progression
+        conversation_analysis = {
+            "total_messages": len(conversation_history),
+            "has_asked_questions": any("?" in msg for msg in conversation_history),
+            "has_mentioned_budget": any(word in " ".join(conversation_history).lower() for word in ["presupuesto", "precio", "costo", "dinero"]),
+            "has_mentioned_timeline": any(word in " ".join(conversation_history).lower() for word in ["cuando", "pronto", "urgente", "inmediato"]),
+            "has_requested_contact": any(word in " ".join(conversation_history).lower() for word in ["llamada", "contacto", "visita", "reunión"])
+        }
+        
+        # Determine lead progression level
+        lead_progression = "cold"
+        progression_reason = "Initial contact"
+        
+        if current_indicators:
+            # Check for hot indicators first
+            hot_indicators = [ind for ind in current_indicators if ind["level"] == "hot"]
+            if hot_indicators:
+                lead_progression = "hot"
+                progression_reason = f"Immediate action indicators: {[ind['keyword'] for ind in hot_indicators]}"
+            else:
+                # Check for warm indicators
+                warm_indicators = [ind for ind in current_indicators if ind["level"] == "warm"]
+                if warm_indicators:
+                    lead_progression = "warm"
+                    progression_reason = f"Buying interest indicators: {[ind['keyword'] for ind in warm_indicators]}"
+        
+        # Consider conversation history for progression
+        if conversation_analysis["has_requested_contact"] and conversation_analysis["has_mentioned_budget"]:
+            lead_progression = "hot"
+            progression_reason = "Multiple buying signals detected"
+        elif conversation_analysis["has_mentioned_budget"] or conversation_analysis["has_asked_questions"]:
+            if lead_progression == "cold":
+                lead_progression = "warm"
+                progression_reason = "Engagement and interest detected"
+        
+        # Get or create lead
+        from app.models import QualifiedLead, CustomerInfo
+        
+        existing_lead = db.query(QualifiedLead).filter_by(telefono=phone_number).first()
+        
+        if existing_lead:
+            # Update existing lead progression
+            old_rating = getattr(existing_lead, 'lead_rating', 'initial')
+            
+            # Update lead rating if progression is higher
+            rating_hierarchy = {"cold": 1, "initial": 1, "warm": 2, "hot": 3}
+            current_level = rating_hierarchy.get(old_rating, 1)
+            new_level = rating_hierarchy.get(lead_progression, 1)
+            
+            if new_level > current_level:
+                existing_lead.lead_rating = lead_progression
+                existing_lead.conversation_summary = f"Lead nurtured: {old_rating} → {lead_progression} - {progression_reason}"
+                db.commit()
+                logger.info(f"✅ Lead {existing_lead.id} nurtured from {old_rating} to {lead_progression}")
+            else:
+                logger.info(f"📊 Lead {existing_lead.id} maintained at {lead_progression} level")
+            
+            lead = existing_lead
+        else:
+            # Create new lead with progression level
+            customer = db.query(CustomerInfo).filter_by(telefono=phone_number).first()
+            if not customer:
+                logger.warning(f"⚠️ No customer found for {phone_number}, cannot create lead")
+                return {
+                    "success": False,
+                    "message": "Customer not found",
+                    "lead_data": {}
+                }
+            
+            lead = QualifiedLead(
+                customer_info_id=customer.id,
+                nombre=customer.nombre,
+                telefono=phone_number,
+                email="",
+                fuente="AI Agent",
+                proyecto_interes="yucatan",  # Default
+                ciudad_interes="yucatan",
+                motivo_interes="interes_inicial",
+                urgencia_compra="sin_urgencia",
+                desea_informacion=True,
+                lead_rating=lead_progression,
+                conversation_summary=f"New lead created with {lead_progression} progression - {progression_reason}"
+            )
+            db.add(lead)
+            db.commit()
+            db.refresh(lead)
+            logger.info(f"✅ Created new lead {lead.id} with {lead_progression} progression")
+        
+        # Determine next nurturing actions
+        nurturing_actions = []
+        if lead_progression == "cold":
+            nurturing_actions = ["Send property information", "Ask about interests", "Provide contact options"]
+        elif lead_progression == "warm":
+            nurturing_actions = ["Send detailed pricing", "Schedule property tour", "Provide financing options"]
+        elif lead_progression == "hot":
+            nurturing_actions = ["Immediate contact", "Schedule urgent meeting", "Provide direct contact info"]
+        
+        logger.info(f"🌱 Lead nurturing completed - Level: {lead_progression}, Actions: {nurturing_actions}")
+        
+        return {
+            "success": True,
+            "message": f"Lead nurtured to {lead_progression} level",
+            "lead_data": {
+                "lead_id": lead.id,
+                "progression_level": lead_progression,
+                "progression_reason": progression_reason,
+                "nurturing_actions": nurturing_actions,
+                "conversation_analysis": conversation_analysis,
+                "indicators_found": current_indicators
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Error nurturing lead: {e}")
+        return {
+            "success": False,
+            "message": f"Error nurturing lead: {str(e)}",
+            "lead_data": {}
+        }

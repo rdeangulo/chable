@@ -206,6 +206,38 @@ class SingleAIHandler:
                         "required": ["selected_property", "lead_data"]
                     }
                 }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "validate_and_extract_name",
+                    "description": "Validate and extract customer name from message or profile. Ensures we have both first and last name for CRM requirements.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "message": {"type": "string", "description": "Customer message to extract name from"},
+                            "profile_name": {"type": "string", "description": "WhatsApp profile name"},
+                            "telefono": {"type": "string", "description": "Customer phone number"}
+                        },
+                        "required": ["telefono"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "nurture_lead_progression",
+                    "description": "Nurture and update lead progression based on conversation analysis. Analyzes conversation to determine lead progression from cold to hot and updates lead rating accordingly.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "message": {"type": "string", "description": "Current customer message"},
+                            "telefono": {"type": "string", "description": "Customer phone number"},
+                            "conversation_history": {"type": "array", "description": "Previous conversation messages for context"}
+                        },
+                        "required": ["message", "telefono"]
+                    }
+                }
             }
         ]
     
@@ -438,7 +470,7 @@ class SingleAIHandler:
                     result = self.call_vector_store(query, max_results)
                     logger.info(f"🔍 Found {len(result)} properties")
                     
-                elif function_name in ["enviar_foto", "capture_customer_info", "send_brochure", "send_yucatan_location", "qualify_lead", "get_contact_info", "show_property_options", "select_property"]:
+                elif function_name in ["enviar_foto", "capture_customer_info", "send_brochure", "send_yucatan_location", "qualify_lead", "get_contact_info", "show_property_options", "select_property", "validate_and_extract_name", "nurture_lead_progression"]:
                     # Call the real function from execute_functions.py
                     if db and sender_info:
                         try:
