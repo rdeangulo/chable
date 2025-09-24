@@ -264,6 +264,10 @@ class LassoCRMService:
                 "Accept": "application/json"
             }
             
+            # Debug: Log the exact data being sent
+            import json
+            logger.info(f"🔍 Sending to Lasso CRM: {json.dumps(lead_data, indent=2)}")
+            
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     endpoint,
@@ -271,6 +275,11 @@ class LassoCRMService:
                     json=lead_data,
                     timeout=30.0
                 )
+                
+                # Debug: Log response details
+                logger.info(f"🔍 Lasso CRM Response Status: {response.status_code}")
+                logger.info(f"🔍 Lasso CRM Response Headers: {dict(response.headers)}")
+                logger.info(f"🔍 Lasso CRM Response Body: {response.text}")
                 
                 response.raise_for_status()
                 result = response.json()
