@@ -340,6 +340,19 @@ async def execute_function(tool_call, db: Session, sender_info=None):
             logger.error(f"Error executing nurture_lead_progression: {e}")
             return {"success": False, "error": "Error nurturing lead progression"}
 
+    elif function_name == "summarize_interaction":
+        try:
+            result = await summarize_interaction(
+                telefono=function_arguments.get("telefono", ""),
+                interaction_summary=function_arguments.get("interaction_summary", ""),
+                key_points=function_arguments.get("key_points", []),
+                db=db
+            )
+            return result
+        except Exception as e:
+            logger.error(f"Error executing summarize_interaction: {e}")
+            return {"success": False, "error": "Error summarizing interaction"}
+
     logger.warning(f"Función {function_name} no reconocida.")
     return "Función no reconocida"
 
@@ -1599,4 +1612,70 @@ async def nurture_lead_progression(db: Session, data: Dict[str, Any]) -> Dict[st
             "success": False,
             "message": f"Error nurturing lead: {str(e)}",
             "lead_data": {}
+        }
+
+
+async def summarize_interaction(telefono: str, interaction_summary: str, key_points: list = None, db=None):
+    """
+    Summarize the current interaction and update conversation summary.
+    This maintains persistent thread memory across conversations.
+    
+    Args:
+        telefono: Customer phone number
+        interaction_summary: Summary of the current interaction
+        key_points: List of key points from the conversation
+        db: Database session
+        
+    Returns:
+        Dict with success status and summary details
+    """
+    try:
+        if not db:
+            logger.error("Database session not provided for interaction summary")
+            return {"success": False, "error": "Database session not available"}
+        
+        # Get or create lead
+        lead = db.query(QualifiedLead).filter_by(telefono=telefono).first()
+        
+        if not lead:
+            logger.warning(f"No lead found for {telefono}, cannot summarize interaction")
+            return {"success": False, "error": "Lead not found"}
+        
+        # Update conversation summary
+        current_summary = lead.conversation_summary or ""
+        
+        # Create new summary entry
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        new_entry = f"[{timestamp}] {interaction_summary}"
+        
+        if key_points:
+            points_text = " | ".join(key_points)
+            new_entry += f" | Puntos clave: {points_text}"
+        
+        # Append to existing summary
+        if current_summary:
+            updated_summary = f"{current_summary}\n{new_entry}"
+        else:
+            updated_summary = new_entry
+        
+        # Update lead with new summary
+        lead.conversation_summary = updated_summary
+        db.commit()
+        
+        logger.info(f"📝 Updated conversation summary for {telefono}")
+        logger.info(f"📋 Summary: {interaction_summary}")
+        
+        return {
+            "success": True,
+            "message": "Interaction summarized successfully",
+            "summary": interaction_summary,
+            "key_points": key_points or [],
+            "updated_summary": updated_summary
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Error summarizing interaction: {e}")
+        return {
+            "success": False,
+            "error": str(e)
         }

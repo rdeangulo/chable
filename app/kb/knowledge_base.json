@@ -10,10 +10,16 @@
         "coords": "20.75687601340695,-89.87262540811165"
       },
       "highlights": [
-        "Hotel con 40 llaves, 50 hectáreas de selva",
-        "Spa junto a cenote, 2 restaurantes por Chef Jorge Vallejo",
-        "Residencias privadas con diseño sustentable"
-      ]
+        "Santuario en 50 hectáreas de selva maya",
+        "Hotel premiado por The World's 50 Best con 2 llaves MICHELIN",
+        "72 lotes residenciales privados con 5 tipologías",
+        "Spa junto a cenote natural, restaurantes Ixi'im y Ki'ol",
+        "Wellness Golf, canchas tenis/pádel, Meliponario, Temazcal"
+      ],
+      "units": "72 lotes residenciales privados con 5 tipologías (Utz, Kuxtal, Ool, Ool + observatorio, Kin + observatorio), desde 2 hasta 5 recámaras",
+      "materials": "Chukum, mármol Fiorito, maderas Tzalam y Cumarú",
+      "accessibility": "45 minutos de Mérida y su aeropuerto internacional",
+      "culture": "Herencia cultural maya con lujo contemporáneo"
     },
     {
       "key": "valle_de_guadalupe",
@@ -25,10 +31,16 @@
         "coords": "32.098667540758754,-116.63964129252854"
       },
       "highlights": [
-        "70 llaves de hotel, 20 hectáreas de viñedos",
-        "Vistas panorámicas a viñedos y valle",
-        "Club house, wellness y jardín de eventos"
-      ]
+        "Solo 10 lotes residenciales - exclusividad extrema",
+        "20 hectáreas de viñedos con vistas panorámicas",
+        "Destino gastronómico reconocido mundialmente",
+        "Restaurante insignia, clubhouse, centro wellness",
+        "Jardín de eventos y canchas deportivas"
+      ],
+      "units": "Residencias de 3 y 4 recámaras con cava, bar, jacuzzi y amplias terrazas",
+      "materials": "Piedra laja, maderas naturales, mármol Tundra Beige",
+      "culture": "Inmersión total en la cultura del vino",
+      "exclusivity": "Máxima privacidad con solo 10 lotes"
     },
     {
       "key": "costalegre",
@@ -40,10 +52,16 @@
         "coords": "20.08115381585659,-105.53658494064656"
       },
       "highlights": [
-        "71 suites y 19 residencias",
-        "Arquitectura/interiores por Cuaik SDS, paisajismo por Maat Handasa",
-        "Club de playa, spa, kids club"
-      ]
+        "Enclave exclusivo El Tezcalame en costa del Pacífico",
+        "Vistas panorámicas al Océano Pacífico y estero El Hermitaño",
+        "Master plan con campo de golf Greg Norman",
+        "Club de polo y eco-club náutico futuros",
+        "Tres restaurantes, spa, club de playa privado"
+      ],
+      "units": "19 residencias de 4 y 5 recámaras en dos niveles con alberca, jacuzzi y terrazas privadas",
+      "materials": "Piedra laja, mármol Dorado Tepexi, madera de teca",
+      "future_amenities": "Campo de golf Greg Norman, club de polo, eco-club náutico",
+      "nature": "Belleza natural virgen en santuario natural"
     }
   ],
   "websites": {
@@ -52,17 +70,58 @@
     "costalegre": "www.chcostalegreresidences.com"
   },
   "languages": ["es", "en", "zh", "hi", "ar", "ru", "fr", "de"],
+  "target_clients": {
+    "hwnis": "Individuos de Alto Patrimonio Neto (45-65 años) - Buscan exclusividad, privacidad y experiencias a la medida",
+    "executives": "Empresarios y Ejecutivos de Alto Nivel (35-55 años) - Buscan equilibrio profesional/familiar, apreciación de propiedad",
+    "investors": "Inversionistas Internacionales (40-60 años) - Buscan oportunidades únicas en mercados emergentes",
+    "families": "Familias Adineradas (40-50 años) - Priorizan seguridad, actividades familiares y bienestar",
+    "celebrities": "Celebridades y Creativos (30-60 años) - Valoran privacidad absoluta y escape del ojo público",
+    "retirees": "Jubilados de Alto Patrimonio Neto (60-75 años) - Buscan refugio tranquilo con excelente clima y seguridad"
+  },
+  "sales_process": {
+    "step1": "Negociación y Carta de Intención - Depósito inicial $20,000 USD en 5 días",
+    "step2": "Debida Diligencia (4-6 semanas) - Revisión documentación legal, pago 30% anticipo",
+    "step3": "Construcción y Pagos Diferidos - 25% cimentación, 25% obra negra, 20% final escrituración",
+    "step4": "Escrituración y Entrega - Recorrido final, firma notario, entrega llaves",
+    "no_financing": "El desarrollador NO ofrece financiamiento directo - modelo self-funded",
+    "progress_reports": "Reportes de avance cada 2 meses al comprador"
+  },
+  "foreign_buyers": {
+    "can_buy": "Sí, extranjeros pueden comprar a través de fideicomiso bancario",
+    "trust_duration": "50 años renovable por otros 50 años - propiedad nunca se pierde",
+    "closing_costs": "5% a 8% del valor de la propiedad (ISAI, notario, fideicomiso)",
+    "legal_safety": "Proceso supervisado por Notario Público, título inscrito en Registro Público",
+    "rights": "Todos los derechos: usar, rentar, vender, heredar - no es arrendamiento"
+  },
+  "differentiators": {
+    "vs_fairmont": "Más íntimo, centrado en bienestar holístico, comunidad exclusiva inmersa en naturaleza",
+    "vs_six_senses": "Master plan con amenidades ultra lujo como campo golf Greg Norman",
+    "vs_cuatro_cuatros": "Nivel de lujo, diseño y exclusividad superior con solo 10 residencias"
+  },
   "policies": {
     "no_cross_development": true,
     "if_unknown_register": true,
     "prices_by_registration": true,
     "legal_disclaimer": true,
-    "media_archive_old_do_not_use": true
+    "media_archive_old_do_not_use": true,
+    "no_price_lists": "NUNCA dar precios exactos - dirigir a registro formal para información actualizada"
   },
   "crm": {
     "name": "ECI Lasso CRM",
     "required_fields": ["firstName", "lastName", "email", "phone", "source", "notes"],
-    "note": "No exponer credenciales. Enviar leads con intereses y scoring."
+    "note": "No exponer credenciales. Enviar leads con intereses y scoring.",
+    "lead_qualification": "Capturar y calificar leads 24/7, filtrar curiosos vs compradores serios",
+    "information_provision": "Proveer información general sobre desarrollos, liberar tiempo para leads calificados",
+    "direction": "Guiar prospectos interesados a registro formal y agendar llamada/tour"
+  },
+  "chatbot_role": {
+    "primary_function": "Asistente digital para optimizar trabajo de ventas",
+    "capture_qualify": "Atender preguntas iniciales 24/7, capturar datos (nombre, email, teléfono)",
+    "filter_leads": "Filtrar leads que solo están 'curioseando' vs compradores serios",
+    "inform": "Proveer información general sobre desarrollos (descripciones, amenidades)",
+    "direct": "Guiar prospectos interesados a registro formal en página web correcta",
+    "no_cross_info": "No dar información cruzada entre desarrollos - dirigir al sitio web correspondiente",
+    "broker_handoff": "Si no sabe respuesta: 'Para información detallada, regístrese para que asesor en sitio lo contacte'"
   },
   "sales_contacts": {
     "yucatan": {

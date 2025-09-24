@@ -20,9 +20,9 @@ def _load_kb() -> Dict[str, Any]:
 
 
 def _format_projects_section(kb: Dict[str, Any]) -> str:
-    """Create a concise projects section from KB."""
+    """Create a detailed projects section from KB."""
     projects = kb.get("projects", [])
-    lines = ["PROYECTOS SOPORTADOS:"]
+    lines = ["PROYECTOS SOPORTADOS - RESIDENCIAS DE LUJO:"]
     for p in projects:
         name = p.get("name")
         short = p.get("short")
@@ -30,7 +30,23 @@ def _format_projects_section(kb: Dict[str, Any]) -> str:
         city = loc.get("city")
         state = loc.get("state")
         coords = loc.get("coords")
-        lines.append(f"- {name} ({short}) — {city}, {state} | GPS: {coords}")
+        highlights = p.get("highlights", [])
+        units = p.get("units", "")
+        materials = p.get("materials", "")
+        culture = p.get("culture", "")
+        
+        lines.append(f"\n🏛️ {name} ({short})")
+        lines.append(f"📍 Ubicación: {city}, {state} | GPS: {coords}")
+        if culture:
+            lines.append(f"🎨 Concepto: {culture}")
+        if units:
+            lines.append(f"🏠 Unidades: {units}")
+        if materials:
+            lines.append(f"✨ Acabados: {materials}")
+        if highlights:
+            lines.append("🌟 Puntos Clave:")
+            for highlight in highlights[:3]:  # Top 3 highlights
+                lines.append(f"   • {highlight}")
     return "\n".join(lines)
 
 
@@ -81,6 +97,63 @@ def _format_contacts_section(kb: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _format_target_clients_section(kb: Dict[str, Any]) -> str:
+    """Create the target clients section."""
+    clients = kb.get("target_clients", {})
+    lines = ["CLIENTES OBJETIVO - PERFILES DE ALTO PATRIMONIO:"]
+    for key, description in clients.items():
+        lines.append(f"• {description}")
+    return "\n".join(lines)
+
+
+def _format_sales_process_section(kb: Dict[str, Any]) -> str:
+    """Create the sales process section."""
+    process = kb.get("sales_process", {})
+    lines = ["PROCESO DE VENTA - PASO A PASO:"]
+    lines.append(f"1️⃣ {process.get('step1', '')}")
+    lines.append(f"2️⃣ {process.get('step2', '')}")
+    lines.append(f"3️⃣ {process.get('step3', '')}")
+    lines.append(f"4️⃣ {process.get('step4', '')}")
+    lines.append(f"\n⚠️ {process.get('no_financing', '')}")
+    lines.append(f"📊 {process.get('progress_reports', '')}")
+    return "\n".join(lines)
+
+
+def _format_foreign_buyers_section(kb: Dict[str, Any]) -> str:
+    """Create the foreign buyers section."""
+    foreign = kb.get("foreign_buyers", {})
+    lines = ["COMPRADORES EXTRANJEROS - INFORMACIÓN LEGAL:"]
+    lines.append(f"✅ {foreign.get('can_buy', '')}")
+    lines.append(f"⏰ {foreign.get('trust_duration', '')}")
+    lines.append(f"💰 {foreign.get('closing_costs', '')}")
+    lines.append(f"🛡️ {foreign.get('legal_safety', '')}")
+    lines.append(f"📋 {foreign.get('rights', '')}")
+    return "\n".join(lines)
+
+
+def _format_differentiators_section(kb: Dict[str, Any]) -> str:
+    """Create the competitive differentiators section."""
+    diffs = kb.get("differentiators", {})
+    lines = ["DIFERENCIADORES COMPETITIVOS:"]
+    for key, description in diffs.items():
+        lines.append(f"• {description}")
+    return "\n".join(lines)
+
+
+def _format_chatbot_role_section(kb: Dict[str, Any]) -> str:
+    """Create the chatbot role section."""
+    role = kb.get("chatbot_role", {})
+    lines = ["ROL DEL CHATBOT - ASISTENTE DIGITAL:"]
+    lines.append(f"🎯 {role.get('primary_function', '')}")
+    lines.append(f"📊 {role.get('capture_qualify', '')}")
+    lines.append(f"🔍 {role.get('filter_leads', '')}")
+    lines.append(f"ℹ️ {role.get('inform', '')}")
+    lines.append(f"👆 {role.get('direct', '')}")
+    lines.append(f"🚫 {role.get('no_cross_info', '')}")
+    lines.append(f"🤝 {role.get('broker_handoff', '')}")
+    return "\n".join(lines)
+
+
 def build_system_prompt(store_id: str, site_context: Optional[str] = None) -> str:
     """Compose the full system prompt from KB and guardrails.
 
@@ -91,7 +164,7 @@ def build_system_prompt(store_id: str, site_context: Optional[str] = None) -> st
     kb = _load_kb()
 
     persona = (
-        "Eres un REPRESENTANTE DE VENTAS DE LUJO especializado en The Residences at Chablé - el desarrollo residencial más exclusivo de México. "
+        "Eres un REPRESENTANTE DE VENTAS DE LUJO especializado en The Residences at Chablé - RESIDENCIAS DE LUJO PARA VENTA. "
         "Tu MISIÓN PRINCIPAL es: 1) Identificar al lead, 2) Obtener nombre completo, 3) Confirmar teléfono (ya disponible), "
         "4) Determinar propiedad de interés, 5) Calificar e inyectar lead al CRM. "
         "IMPORTANTE: Si ya tienes el nombre del cliente, NO lo pidas de nuevo. Usa la información que ya tienes. "
@@ -99,6 +172,10 @@ def build_system_prompt(store_id: str, site_context: Optional[str] = None) -> st
         "CONTEXTO CRÍTICO: Siempre revisa el historial de conversación antes de responder. "
         "NO repitas preguntas ya hechas. NO pidas información ya proporcionada. "
         "Mantén un registro mental de: nombre, teléfono, propiedad de interés, presupuesto, urgencia. "
+        "MEMORIA PERSISTENTE: Recuerda TODA la información previa del cliente. "
+        "RESUMIR INTERACCIONES: Al final de cada conversación, resume los puntos clave. "
+        "ENTRENAMIENTO: SIEMPRE empieza preguntando por el nombre completo del cliente. "
+        "FLUJO OBLIGATORIO: 1) Saludo + pregunta por nombre, 2) Confirmar teléfono, 3) Propiedad de interés, 4) Calificar lead. "
         "ACTÚA COMO REPRESENTANTE DE LUJO: Destaca la exclusividad, ubicaciones premium, amenidades de clase mundial, "
         "y la experiencia de vida única que ofrecemos. Menciona proyectos como Yucatán (Chablé Resort), Valle de Guadalupe (vinos), "
         "y Costalegre (playa privada). Sé sofisticado, elegante y diferenciado. "
@@ -123,6 +200,11 @@ def build_system_prompt(store_id: str, site_context: Optional[str] = None) -> st
     policies = _format_policies_section(kb)
     crm = _format_crm_section(kb)
     contacts = _format_contacts_section(kb)
+    target_clients = _format_target_clients_section(kb)
+    sales_process = _format_sales_process_section(kb)
+    foreign_buyers = _format_foreign_buyers_section(kb)
+    differentiators = _format_differentiators_section(kb)
+    chatbot_role = _format_chatbot_role_section(kb)
 
     lead_capture = (
         "DATOS CRÍTICOS A CAPTURAR:\n"
@@ -176,6 +258,16 @@ REGLAS DE CONVERSACIÓN:
 {sales_strategy}
 
 {projects}
+
+{target_clients}
+
+{sales_process}
+
+{foreign_buyers}
+
+{differentiators}
+
+{chatbot_role}
 
 {lead_capture}
 

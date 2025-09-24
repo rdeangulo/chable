@@ -243,6 +243,26 @@ class SingleAIHandler:
                         "required": ["message", "telefono"]
                     }
                 }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "summarize_interaction",
+                    "description": "Summarize the current interaction and update conversation summary. Use this to maintain persistent thread memory.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "telefono": {"type": "string", "description": "Customer phone number"},
+                            "interaction_summary": {"type": "string", "description": "Summary of the current interaction"},
+                            "key_points": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                                "description": "Key points from the conversation"
+                            }
+                        },
+                        "required": ["telefono", "interaction_summary"]
+                    }
+                }
             }
         ]
     
