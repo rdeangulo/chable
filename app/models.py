@@ -255,6 +255,7 @@ class QualifiedLead(Base):
     # Conversation analysis
     conversation_summary = Column(Text, nullable=True)  # Summary of the conversation
     deducted_interest = Column(Text, nullable=True)  # Interest score and justification
+    lead_rating = Column(String(20), nullable=True, default="initial")  # initial, warm, hot
 
     # New fields
     agent_id = Column(Integer, ForeignKey("agents.id"), nullable=True)

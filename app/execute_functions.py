@@ -88,9 +88,11 @@ async def execute_function(tool_call, db: Session, sender_info=None):
         dict: Result to be returned to the assistant
     """
     function_name = tool_call.get("function_name")
+    logger.info(f"Executing function: {function_name}")
     
     try:
         function_arguments = json.loads(tool_call.get("arguments", "{}"))
+        logger.info(f"Function arguments: {function_arguments}")
     except json.JSONDecodeError as e:
         logger.error(f"Error parsing function arguments: {e}")
         # Try to fix common JSON parsing issues
@@ -131,7 +133,7 @@ async def execute_function(tool_call, db: Session, sender_info=None):
             mensaje_acompañante = function_arguments.get("mensaje_acompañante", None)
             buscar_alternativa = function_arguments.get("buscar_alternativa", True)
             
-            logger.info(f"Enviando foto: categoria={categoria}, subcategoria={subcategoria}, tipo={tipo_residencia}")
+            logger.info(f"📸 Sending photo: categoria={categoria}, subcategoria={subcategoria}, tipo={tipo_residencia}, area={area}")
             
             # Call the enviar_foto function
             result = enviar_foto(
@@ -144,7 +146,7 @@ async def execute_function(tool_call, db: Session, sender_info=None):
             )
             
             # Log the result
-            logger.info(f"Resultado de enviar_foto: {result}")
+            logger.info(f"📸 Photo result: success={result.get('success')}, url={result.get('photo_url', 'N/A')[:50]}...")
             
             # If the function returned a photo URL, actually send it via Twilio
             if result.get("success") and result.get("photo_url"):

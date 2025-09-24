@@ -345,8 +345,11 @@ class SingleAIHandler:
             str: AI response
         """
         try:
+            logger.info(f"🤖 AI processing message: '{user_message[:100]}...' (speed: {model_speed})")
+            
             # Select model
             model = self.select_model(model_speed)
+            logger.info(f"🤖 Selected model: {model}")
             
             # Add user message to history
             self.conversation_history.append({"role": "user", "content": user_message})
@@ -356,6 +359,8 @@ class SingleAIHandler:
                 {"role": "system", "content": self.system_prompt},
                 *self.conversation_history[-10:]  # Last 10 messages
             ]
+            
+            logger.info(f"🤖 Prepared {len(messages)} messages for AI processing")
             
             # Call OpenAI with function calling
             response = self.client.chat.completions.create(
@@ -369,8 +374,11 @@ class SingleAIHandler:
             
             # Check if functions were called
             if response.choices[0].message.tool_calls:
+                logger.info(f"🔧 AI requested {len(response.choices[0].message.tool_calls)} function calls")
+                
                 # Execute functions
                 function_results = self._execute_functions(response.choices[0].message.tool_calls, db, sender_info)
+                logger.info(f"🔧 Executed {len(function_results)} functions successfully")
                 
                 # Add function results to conversation
                 messages.append({
@@ -387,6 +395,7 @@ class SingleAIHandler:
                     })
                 
                 # Get final response
+                logger.info("🤖 Generating final response after function execution")
                 final_response = self.client.chat.completions.create(
                     model=model,
                     messages=messages,
@@ -395,8 +404,10 @@ class SingleAIHandler:
                 )
                 
                 ai_response = final_response.choices[0].message.content
+                logger.info(f"🤖 Final response generated: '{ai_response[:100]}...'")
             else:
                 ai_response = response.choices[0].message.content
+                logger.info(f"🤖 Direct response generated: '{ai_response[:100]}...'")
             
             # Add AI response to history
             self.conversation_history.append({"role": "assistant", "content": ai_response})
@@ -411,23 +422,27 @@ class SingleAIHandler:
         """Execute the functions called by OpenAI."""
         results = []
         
-        for tool_call in tool_calls:
+        for i, tool_call in enumerate(tool_calls):
             try:
                 function_name = tool_call.function.name
                 function_args = json.loads(tool_call.function.arguments)
                 
-                logger.info(f"Executing function: {function_name} with args: {function_args}")
+                logger.info(f"🔧 [{i+1}/{len(tool_calls)}] Executing: {function_name}")
+                logger.debug(f"🔧 Function args: {function_args}")
                 
                 # Execute function based on name
                 if function_name == "search_properties":
                     query = function_args.get("query", "")
                     max_results = function_args.get("max_results", 5)
+                    logger.info(f"🔍 Searching properties: '{query}' (max: {max_results})")
                     result = self.call_vector_store(query, max_results)
+                    logger.info(f"🔍 Found {len(result)} properties")
                     
                 elif function_name in ["enviar_foto", "capture_customer_info", "send_brochure", "send_yucatan_location", "qualify_lead", "get_contact_info", "show_property_options", "select_property"]:
                     # Call the real function from execute_functions.py
                     if db and sender_info:
                         try:
+                            logger.info(f"🔧 Executing {function_name} with database context")
                             # Prepare the tool_call data
                             tool_call_data = {
                                 "function_name": function_name,
@@ -437,28 +452,33 @@ class SingleAIHandler:
                             # Execute function synchronously using asyncio.run
                             import asyncio
                             result = asyncio.run(execute_function(tool_call_data, db, sender_info))
+                            logger.info(f"🔧 Function {function_name} completed successfully")
                                 
                         except Exception as e:
-                            logger.error(f"Error executing function {function_name}: {e}")
+                            logger.error(f"🔧 Error executing function {function_name}: {e}")
                             result = f"Error ejecutando función: {str(e)}"
                     else:
+                        logger.warning(f"🔧 Function {function_name} requires database context")
                         result = f"Función {function_name} requiere contexto de base de datos"
                     
                 else:
+                    logger.info(f"🔧 Unknown function: {function_name}")
                     result = f"Función {function_name} ejecutada con éxito"
                 
                 results.append({
                     "tool_call_id": tool_call.id,
                     "output": str(result)
                 })
+                logger.info(f"🔧 Function {function_name} result: {str(result)[:100]}...")
                 
             except Exception as e:
-                logger.error(f"Error executing function {function_name}: {e}")
+                logger.error(f"🔧 Error executing function {function_name}: {e}")
                 results.append({
                     "tool_call_id": tool_call.id,
                     "output": f"Error executing function: {str(e)}"
                 })
         
+        logger.info(f"🔧 Completed {len(results)} function executions")
         return results
     
     def get_conversation_summary(self) -> str:

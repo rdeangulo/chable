@@ -212,30 +212,39 @@ async def process_message(
     """
     Process incoming messages from Twilio webhook (WhatsApp).
     """
+    # Generate request ID for tracking
+    import uuid
+    request_id = str(uuid.uuid4())[:8]
+    
     try:
+        logger.info(f"[{request_id}] Starting WhatsApp message processing")
         twilio_service = TwilioService()
 
         # Parse form data from Twilio webhook
         form_data = await request.form()
-        logger.debug(f"Received form data: {form_data}")
-
-        # Check for message ID to prevent duplicates
+        logger.info(f"[{request_id}] Received form data with {len(form_data)} fields")
+        logger.debug(f"[{request_id}] Form data: {dict(form_data)}")
+        
+        # Quick validation and early response to prevent timeouts
         message_sid = form_data.get("MessageSid")
         if not message_sid:
-            logger.error("No MessageSid found in request")
+            logger.error(f"[{request_id}] No MessageSid found in request")
             return Response(content="", status_code=200)
+        
+        logger.info(f"[{request_id}] Processing message SID: {message_sid}")
 
         # Extract sender information
         whatsapp_number = form_data.get("From", "").split("whatsapp:")[-1]
         if not whatsapp_number:
-            logger.error("No WhatsApp number found in request")
+            logger.error(f"[{request_id}] No WhatsApp number found in request")
             return Response(content="", status_code=200)
 
         profile_name = form_data.get("ProfileName", "").strip()
+        logger.info(f"[{request_id}] Processing message from {whatsapp_number} (Profile: {profile_name})")
 
         # Drop message early if number is blocked
         if is_number_blocked(whatsapp_number):
-            logger.info(f"Ignoring message from blocked number {whatsapp_number}")
+            logger.info(f"[{request_id}] Ignoring message from blocked number {whatsapp_number}")
             return Response(content="", status_code=200)
 
         # Determine platform (default to WhatsApp)
@@ -268,12 +277,12 @@ async def process_message(
         body = form_data.get("Body", "").strip()
 
         if not body and num_media == 0:
-            logger.error("No message content found")
+            logger.error(f"[{request_id}] No message content found")
             return Response(content="", status_code=200)
 
         # Clean message to remove duplicated text
         body = clean_repeated_text(body)
-        logger.info(f"Received message from {whatsapp_number}: {body}")
+        logger.info(f"[{request_id}] Message content: '{body}' (Media: {num_media})")
 
         # Handle media messages (including non-audio)
         if num_media > 0:
@@ -400,18 +409,39 @@ async def process_message(
             )
             response = ""
         else:
-            # Process message through new AI handler
-            response = ai_handler.process_message(debounced_message, model_speed="balanced")
+            # Process message through new AI handler with timeout protection
+            try:
+                import asyncio
+                from app.timeout_util import with_timeout
+                
+                logger.info(f"[{request_id}] Starting AI processing for message: '{debounced_message[:100]}...'")
+                
+                # Add timeout to prevent long delays
+                @with_timeout(10)  # 10 second timeout
+                async def process_ai_message():
+                    return ai_handler.process_message(
+                        debounced_message, 
+                        model_speed="balanced", 
+                        db=db, 
+                        sender_info=sender_info
+                    )
+                
+                response = asyncio.run(process_ai_message())
+                logger.info(f"[{request_id}] AI response generated: '{response[:100]}...'")
+            except Exception as ai_error:
+                logger.error(f"[{request_id}] AI processing timeout or error: {ai_error}")
+                response = "Lo siento, hubo un problema técnico. Por favor, intenta de nuevo."
 
             media_url, media_type, cleaned_message = extract_media_from_response(
                 response
             )
 
             if media_url:
+                logger.info(f"[{request_id}] Sending {media_type} media to {whatsapp_number}")
                 sid = send_twilio_media_message(
                     whatsapp_number, media_url, cleaned_message, media_type
                 )
-                logger.info(f"Sent {media_type} message to {whatsapp_number}")
+                logger.info(f"[{request_id}] Sent {media_type} message to {whatsapp_number} (SID: {sid})")
                 twilio_service.log_message(
                     db=db,
                     direction="outbound",
@@ -424,8 +454,9 @@ async def process_message(
                     response_time=int((datetime.now(timezone.utc) - inbound_log.created_at).total_seconds()),
                 )
             else:
+                logger.info(f"[{request_id}] Sending text message to {whatsapp_number}")
                 sid = send_message(whatsapp_number, response)
-                logger.info(f"Sent text message to {whatsapp_number}")
+                logger.info(f"[{request_id}] Sent text message to {whatsapp_number} (SID: {sid})")
                 twilio_service.log_message(
                     db=db,
                     direction="outbound",
@@ -476,12 +507,15 @@ async def process_message(
         except Exception as e:
             logger.error(f"Error storing conversation: {e}")
 
-        # Auto-inject missing lead if needed
+        # Create or update lead immediately with available information
         try:
-            await auto_inject_missing_lead(client, db, thread_record, debounced_message)
+            logger.info(f"[{request_id}] Starting lead creation/update process")
+            await create_or_update_lead_immediately(db, thread_record, debounced_message, whatsapp_number, profile_name)
+            logger.info(f"[{request_id}] Lead creation/update completed successfully")
         except Exception as e:
-            logger.error(f"Error in auto-lead injection: {e}")
+            logger.error(f"[{request_id}] Error in lead creation: {e}")
 
+        logger.info(f"[{request_id}] Message processing completed successfully")
         return Response(content="", status_code=200)
 
     except Exception as e:
@@ -583,6 +617,145 @@ async def process_web_widget_message(
         )
 
 # Add other necessary endpoints here...
+
+async def create_or_update_lead_immediately(db: Session, thread_record, message: str, phone_number: str, profile_name: str = ""):
+    """
+    Create or update lead immediately with available information.
+    Implements rating system: initial -> warm -> hot
+    """
+    try:
+        logger.info(f"Starting lead creation for {phone_number}")
+        from app.models import CustomerInfo, QualifiedLead
+        from app.crm_integration import inject_qualified_lead_to_crm
+        
+        # Extract name from profile_name or message
+        full_name = profile_name if profile_name else ""
+        if not full_name and message:
+            logger.info(f"Attempting to extract name from message: '{message[:50]}...'")
+            # Try to extract name from message
+            import re
+            name_patterns = [
+                r"me llamo (\w+)",
+                r"soy (\w+)",
+                r"mi nombre es (\w+)",
+                r"me llamo (\w+ \w+)",
+                r"soy (\w+ \w+)",
+                r"mi nombre es (\w+ \w+)"
+            ]
+            for pattern in name_patterns:
+                match = re.search(pattern, message.lower())
+                if match:
+                    full_name = match.group(1).title()
+                    logger.info(f"Extracted name from message: {full_name}")
+                    break
+        
+        # Determine property interest from message
+        property_interest = ""
+        message_lower = message.lower()
+        logger.info(f"Analyzing message for property interest: '{message[:100]}...'")
+        
+        if any(word in message_lower for word in ["yucatan", "yucatán", "riviera maya", "cancun", "playa del carmen"]):
+            property_interest = "yucatan"
+        elif any(word in message_lower for word in ["valle de guadalupe", "baja california", "ensenada", "vino"]):
+            property_interest = "valle_de_guadalupe"
+        elif any(word in message_lower for word in ["costalegre", "jalisco", "guadalajara", "puerto vallarta"]):
+            property_interest = "costalegre"
+        elif any(word in message_lower for word in ["mar de cortes", "cortes"]):
+            property_interest = "mar_de_cortes"
+        else:
+            property_interest = "yucatan"  # Default to Yucatan as primary focus
+        
+        logger.info(f"Detected property interest: {property_interest}")
+        
+        # Determine lead rating based on message content
+        lead_rating = "initial"
+        if any(word in message_lower for word in ["comprar", "comprar", "invertir", "inversión", "presupuesto", "precio", "costo"]):
+            lead_rating = "warm"
+        if any(word in message_lower for word in ["urgente", "inmediato", "esta semana", "pronto", "visita", "llamada", "contacto"]):
+            lead_rating = "hot"
+        
+        logger.info(f"Determined lead rating: {lead_rating}")
+        
+        # Check if customer already exists
+        existing_customer = db.query(CustomerInfo).filter_by(telefono=phone_number).first()
+        
+        if not existing_customer:
+            # Create new customer
+            customer = CustomerInfo(
+                nombre=full_name,
+                telefono=phone_number,
+                fuente="AI Agent",
+                ciudad_interes=property_interest
+            )
+            db.add(customer)
+            db.commit()
+            db.refresh(customer)
+            logger.info(f"Created new customer: {customer.id}")
+        else:
+            # Update existing customer
+            if full_name and not existing_customer.nombre:
+                existing_customer.nombre = full_name
+            if property_interest and not existing_customer.ciudad_interes:
+                existing_customer.ciudad_interes = property_interest
+            db.commit()
+            customer = existing_customer
+        
+        # Check if qualified lead already exists
+        existing_lead = db.query(QualifiedLead).filter_by(telefono=phone_number).first()
+        
+        if not existing_lead:
+            # Create new qualified lead
+            lead = QualifiedLead(
+                customer_info_id=customer.id,
+                nombre=full_name,
+                telefono=phone_number,
+                email="",
+                fuente="AI Agent",
+                proyecto_interes=property_interest,
+                ciudad_interes=property_interest,
+                motivo_interes="interes_inicial",
+                urgencia_compra="sin_urgencia",
+                desea_informacion=True,
+                lead_rating=lead_rating,
+                conversation_summary=f"Lead creado automáticamente - Rating: {lead_rating}"
+            )
+            db.add(lead)
+            db.commit()
+            db.refresh(lead)
+            logger.info(f"Created new qualified lead: {lead.id} with rating: {lead_rating}")
+        else:
+            # Update existing lead
+            if full_name and not existing_lead.nombre:
+                existing_lead.nombre = full_name
+            if property_interest and not existing_lead.proyecto_interes:
+                existing_lead.proyecto_interes = property_interest
+                existing_lead.ciudad_interes = property_interest
+            
+            # Update rating if it's higher
+            rating_hierarchy = {"initial": 1, "warm": 2, "hot": 3}
+            current_rating_level = rating_hierarchy.get(existing_lead.lead_rating, 1)
+            new_rating_level = rating_hierarchy.get(lead_rating, 1)
+            
+            if new_rating_level > current_rating_level:
+                existing_lead.lead_rating = lead_rating
+                existing_lead.conversation_summary = f"Lead actualizado - Rating: {lead_rating}"
+                logger.info(f"Updated lead {existing_lead.id} rating from {existing_lead.lead_rating} to {lead_rating}")
+            
+            db.commit()
+            lead = existing_lead
+        
+        # Inject to CRM
+        try:
+            crm_result = await inject_qualified_lead_to_crm(db, lead)
+            if crm_result.get("success"):
+                logger.info(f"Successfully injected lead {lead.id} to CRM")
+            else:
+                logger.error(f"Failed to inject lead {lead.id} to CRM: {crm_result.get('errors')}")
+        except Exception as e:
+            logger.error(f"Error injecting lead to CRM: {e}")
+            
+    except Exception as e:
+        logger.error(f"Error in create_or_update_lead_immediately: {e}")
 
 if __name__ == "__main__":
     import uvicorn
