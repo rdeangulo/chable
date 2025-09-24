@@ -92,7 +92,8 @@ def build_system_prompt(store_id: str, site_context: Optional[str] = None) -> st
 
     persona = (
         "Eres un REPRESENTANTE DE VENTAS especializado en bienes raíces de lujo para The Residences at Chablé. "
-        "Tu objetivo es generar leads calificados, mostrar propiedades, enviar información relevante y cerrar ventas. "
+        "Tu MISIÓN PRINCIPAL es: 1) Identificar al lead, 2) Obtener nombre completo, 3) Confirmar teléfono (ya disponible), "
+        "4) Determinar propiedad de interés, 5) Calificar e inyectar lead al CRM. "
         "Sé profesional, conciso y cálido. WhatsApp-style: máximo 2 frases (~25 palabras) y una pregunta de seguimiento por turno."
     )
 
@@ -101,9 +102,10 @@ def build_system_prompt(store_id: str, site_context: Optional[str] = None) -> st
     )
 
     capabilities = (
-        "CAPACIDADES DE VENTAS: responder preguntas del desarrollo, enviar fotos/multimedia/brochures/ubicaciones, "
-        "capturar y calificar leads, registrar en CRM Lasso, asignar prioridad (hot/warm), mostrar opciones de propiedades, "
-        "proporcionar información de contacto, y re-enganchar conversaciones inactivas. USA LAS FUNCIONES DISPONIBLES para cada acción."
+        "CAPACIDADES PRINCIPALES: 1) Identificar leads, 2) Obtener nombre completo, 3) Confirmar teléfono, "
+        "4) Determinar propiedad de interés, 5) Calificar e inyectar al CRM. "
+        "Funciones secundarias: enviar fotos/ubicaciones, responder preguntas, mostrar opciones. "
+        "USA LAS FUNCIONES DISPONIBLES para cada acción."
     )
 
     languages = _format_languages_section(kb)
@@ -113,18 +115,23 @@ def build_system_prompt(store_id: str, site_context: Optional[str] = None) -> st
     contacts = _format_contacts_section(kb)
 
     lead_capture = (
-        "Datos a capturar (cuando se ofrezcan naturalmente): nombre completo, teléfono, email, ciudad y proyecto de interés, tipología, habitaciones/baños, presupuesto, motivación y urgencia, medio/horario de contacto, acción (visita/llamada/info)."
+        "DATOS CRÍTICOS A CAPTURAR:\n"
+        "1) NOMBRE COMPLETO: Siempre preguntar al inicio\n"
+        "2) TELÉFONO: Ya disponible en WhatsApp\n"
+        "3) PROPIEDAD DE INTERÉS: Yucatán, Valle de Guadalupe, Costalegre, etc.\n"
+        "4) CALIFICACIÓN: Urgencia, presupuesto, motivación\n"
+        "5) INYECCIÓN CRM: Automática con qualify_lead y nurture_lead_progression"
     )
 
     sales_strategy = (
-        "ESTRATEGIA DE VENTAS:\n"
-        "- SIEMPRE prioriza Yucatán como desarrollo principal\n"
-        "- Muestra fotos cuando pregunten por interiores/exteriores/planos\n"
-        "- Envía ubicación cuando soliciten dirección\n"
-        "- Captura leads cuando muestren interés real\n"
-        "- Califica leads por urgencia y presupuesto\n"
-        "- Usa funciones: enviar_foto, send_yucatan_location, capture_customer_info, qualify_lead, show_property_options\n"
-        "- Mantén conversación enfocada en ventas y próximos pasos"
+        "ESTRATEGIA DE VENTAS - MISIÓN PRINCIPAL:\n"
+        "1) IDENTIFICAR LEAD: Pregunta por nombre completo al inicio\n"
+        "2) OBTENER NOMBRE: Usa validate_and_extract_name para extraer nombre\n"
+        "3) CONFIRMAR TELÉFONO: Ya disponible en WhatsApp, confirma si es necesario\n"
+        "4) DETERMINAR PROPIEDAD: Pregunta por ubicación de interés (Yucatán, Valle de Guadalupe, etc.)\n"
+        "5) CALIFICAR E INYECTAR: Usa qualify_lead y nurture_lead_progression para CRM\n"
+        "- Funciones clave: validate_and_extract_name, qualify_lead, nurture_lead_progression\n"
+        "- Mantén conversación enfocada en capturar y calificar leads"
     )
 
     websites = kb.get("websites", {})

@@ -369,7 +369,7 @@ class SingleAIHandler:
             logger.error(f"Error calling vector store: {e}")
             return []
     
-    def process_message(self, user_message: str, model_speed: str = "balanced", db=None, sender_info=None) -> str:
+    async def process_message(self, user_message: str, model_speed: str = "balanced", db=None, sender_info=None) -> str:
         """
         Process a user message using the selected model and functions.
         
@@ -413,7 +413,7 @@ class SingleAIHandler:
                 logger.info(f"🔧 AI requested {len(response.choices[0].message.tool_calls)} function calls")
                 
                 # Execute functions
-                function_results = self._execute_functions(response.choices[0].message.tool_calls, db, sender_info)
+                function_results = await self._execute_functions(response.choices[0].message.tool_calls, db, sender_info)
                 logger.info(f"🔧 Executed {len(function_results)} functions successfully")
                 
                 # Add function results to conversation
@@ -454,7 +454,7 @@ class SingleAIHandler:
             logger.error(f"Error processing message: {e}")
             return "Lo siento, hubo un problema técnico. Por favor, intenta de nuevo más tarde."
     
-    def _execute_functions(self, tool_calls: List[Any], db=None, sender_info=None) -> List[Dict[str, Any]]:
+    async def _execute_functions(self, tool_calls: List[Any], db=None, sender_info=None) -> List[Dict[str, Any]]:
         """Execute the functions called by OpenAI."""
         results = []
         
@@ -485,9 +485,8 @@ class SingleAIHandler:
                                 "arguments": json.dumps(function_args)
                             }
                             
-                            # Execute function synchronously using asyncio.run
-                            import asyncio
-                            result = asyncio.run(execute_function(tool_call_data, db, sender_info))
+                            # Execute function asynchronously
+                            result = await execute_function(tool_call_data, db, sender_info)
                             logger.info(f"🔧 Function {function_name} completed successfully")
                                 
                         except Exception as e:
