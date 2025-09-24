@@ -1,0 +1,86 @@
+{
+  "projects": [
+    {
+      "key": "yucatan",
+      "name": "The Residences at Chablé Yucatán",
+      "short": "Yucatán",
+      "location": {
+        "city": "Chocholá",
+        "state": "Yucatán",
+        "coords": "20.75687601340695,-89.87262540811165"
+      },
+      "highlights": [
+        "Hotel con 40 llaves, 50 hectáreas de selva",
+        "Spa junto a cenote, 2 restaurantes por Chef Jorge Vallejo",
+        "Residencias privadas con diseño sustentable"
+      ]
+    },
+    {
+      "key": "valle_de_guadalupe",
+      "name": "The Residences at Chablé Valle de Guadalupe",
+      "short": "Valle de Guadalupe",
+      "location": {
+        "city": "Valle de Guadalupe",
+        "state": "Baja California",
+        "coords": "32.098667540758754,-116.63964129252854"
+      },
+      "highlights": [
+        "70 llaves de hotel, 20 hectáreas de viñedos",
+        "Vistas panorámicas a viñedos y valle",
+        "Club house, wellness y jardín de eventos"
+      ]
+    },
+    {
+      "key": "costalegre",
+      "name": "The Residences at Chablé Costalegre",
+      "short": "Costalegre",
+      "location": {
+        "city": "Tomatlán",
+        "state": "Jalisco",
+        "coords": "20.08115381585659,-105.53658494064656"
+      },
+      "highlights": [
+        "71 suites y 19 residencias",
+        "Arquitectura/interiores por Cuaik SDS, paisajismo por Maat Handasa",
+        "Club de playa, spa, kids club"
+      ]
+    }
+  ],
+  "websites": {
+    "yucatan": "www.chyucatanresidences.com",
+    "valle_de_guadalupe": "www.chvalledeguadaluperesidences.com",
+    "costalegre": "www.chcostalegreresidences.com"
+  },
+  "languages": ["es", "en", "zh", "hi", "ar", "ru", "fr", "de"],
+  "policies": {
+    "no_cross_development": true,
+    "if_unknown_register": true,
+    "prices_by_registration": true,
+    "legal_disclaimer": true,
+    "media_archive_old_do_not_use": true
+  },
+  "crm": {
+    "name": "ECI Lasso CRM",
+    "required_fields": ["firstName", "lastName", "email", "phone", "source", "notes"],
+    "note": "No exponer credenciales. Enviar leads con intereses y scoring."
+  },
+  "sales_contacts": {
+    "yucatan": {
+      "name": "Luisa Carrera",
+      "phone": "+52 556 675 2552",
+      "email": "luisa.carrera@evrealestate.com"
+    },
+    "valle_de_guadalupe": {
+      "name": "Marco Ehrenberg",
+      "phone": "+52 624 151 5400",
+      "email": "marco@sirloscabos.com"
+    },
+    "costalegre": {
+      "name": "JP Mahony",
+      "phone": "+52 322 152 3292",
+      "email": "jp@jpmrealestate.com"
+    }
+  }
+}
+
+
