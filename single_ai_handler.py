@@ -394,7 +394,7 @@ class SingleAIHandler:
             # Prepare messages - reduced for speed
             messages = [
                 {"role": "system", "content": self.system_prompt},
-                *self.conversation_history[-5:]  # Last 5 messages only for speed
+                *self.conversation_history[-10:]  # Last 10 messages for better context
             ]
             
             logger.info(f"🤖 Prepared {len(messages)} messages for AI processing")

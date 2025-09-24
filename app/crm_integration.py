@@ -30,6 +30,11 @@ async def inject_qualified_lead_to_crm(
         Dict with injection results
     """
     try:
+        # Check if lead was already injected to CRM
+        if lead.crm_injected and lead.crm_lead_id:
+            logger.info(f"Lead {lead.id} already injected to CRM (ID: {lead.crm_lead_id}), updating instead")
+            # Update existing lead instead of creating new one
+            return await update_existing_lead_in_crm(db, lead, property_key)
         # Prepare customer data from qualified lead
         customer_data = {
             "nombre": lead.nombre,
@@ -66,7 +71,11 @@ async def inject_qualified_lead_to_crm(
         )
         
         if result.get("success"):
-            logger.info(f"Successfully injected qualified lead {lead.id} to {property_key}")
+            # Mark lead as injected and store CRM lead ID
+            lead.crm_injected = True
+            lead.crm_lead_id = result.get("lead_id")
+            db.commit()
+            logger.info(f"Successfully injected qualified lead {lead.id} to {property_key} (CRM ID: {lead.crm_lead_id})")
         else:
             logger.error(f"Failed to inject qualified lead {lead.id} to {property_key}: {result.get('errors')}")
         
@@ -229,3 +238,77 @@ def get_property_info(property_key: str) -> Optional[Dict[str, Any]]:
 def validate_property_key(property_key: str) -> bool:
     """Validate if property key exists."""
     return crm_manager.validate_property_key(property_key)
+
+
+async def update_existing_lead_in_crm(
+    db: Session, 
+    lead: QualifiedLead, 
+    property_key: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Update an existing lead in Lasso CRM.
+    
+    Args:
+        db: Database session
+        lead: QualifiedLead object with existing CRM ID
+        property_key: Property key (if None, will try to determine from lead data)
+        
+    Returns:
+        Dict with update results
+    """
+    try:
+        if not lead.crm_lead_id:
+            return {
+                "success": False,
+                "error": "No CRM lead ID found for update"
+            }
+        
+        # Prepare customer data from qualified lead
+        customer_data = {
+            "nombre": lead.nombre,
+            "email": lead.email,
+            "telefono": lead.telefono,
+            "fuente": lead.fuente,
+            "motivo_interes": lead.motivo_interes,
+            "urgencia_compra": lead.urgencia_compra,
+            "tipo_propiedad": lead.tipo_propiedad,
+            "presupuesto_min": lead.presupuesto_min,
+            "presupuesto_max": lead.presupuesto_max,
+            "desea_visita": lead.desea_visita,
+            "desea_llamada": lead.desea_llamada,
+            "desea_informacion": lead.desea_informacion,
+            "ciudad_interes": lead.ciudad_interes,
+            "proyecto_interes": lead.proyecto_interes,
+            "sender_platform": "WhatsApp Bot"
+        }
+        
+        # Determine property key if not provided
+        if not property_key:
+            property_key = _determine_property_from_lead(lead)
+        
+        if not property_key:
+            return {
+                "success": False,
+                "error": "Could not determine property for lead update"
+            }
+        
+        # Update in Lasso CRM
+        result = await crm_manager.update_lead_to_property(
+            lead.crm_lead_id,
+            customer_data,
+            property_key
+        )
+        
+        if result.get("success"):
+            logger.info(f"Successfully updated qualified lead {lead.id} in {property_key} (CRM ID: {lead.crm_lead_id})")
+        else:
+            logger.error(f"Failed to update qualified lead {lead.id} in {property_key}: {result.get('errors')}")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error updating qualified lead in CRM: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }

@@ -256,6 +256,8 @@ class QualifiedLead(Base):
     conversation_summary = Column(Text, nullable=True)  # Summary of the conversation
     deducted_interest = Column(Text, nullable=True)  # Interest score and justification
     lead_rating = Column(String(20), nullable=True, default="initial")  # initial, warm, hot
+    crm_injected = Column(Boolean, nullable=False, default=False)  # Track if lead was injected to CRM
+    crm_lead_id = Column(String(50), nullable=True)  # Store CRM lead ID after injection
 
     # New fields
     agent_id = Column(Integer, ForeignKey("agents.id"), nullable=True)

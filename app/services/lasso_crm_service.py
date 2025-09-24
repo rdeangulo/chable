@@ -239,6 +239,46 @@ class LassoCRMService:
         
         return lead_data
     
+    def prepare_simple_lead_data(self, customer_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Prepare lead data in simple format for updates.
+        
+        Args:
+            customer_data: Customer information
+            
+        Returns:
+            Dictionary with simple lead data format
+        """
+        # Extract and validate names
+        full_name = customer_data.get("nombre", "").strip()
+        if not full_name:
+            full_name = "Cliente WhatsApp"
+        
+        # Split name into first and last name
+        name_parts = full_name.split()
+        if len(name_parts) >= 2:
+            first_name = name_parts[0]
+            last_name = " ".join(name_parts[1:])
+        else:
+            first_name = full_name
+            last_name = "Cliente"
+        
+        # Prepare simple lead data for update
+        lead_data = {
+            "firstName": first_name,
+            "lastName": last_name
+        }
+        
+        # Add optional fields if available
+        if customer_data.get("email"):
+            lead_data["email"] = customer_data["email"]
+        
+        if customer_data.get("telefono"):
+            lead_data["phone"] = customer_data["telefono"]
+        
+        logger.info(f"Prepared simple lead data: firstName={first_name}, lastName={last_name}")
+        return lead_data
+    
     def _normalize_interest_level(self, interest: str) -> str:
         """Normalize interest level for Lasso CRM."""
         if not interest:
@@ -328,7 +368,7 @@ class LassoCRMService:
                 "details": str(e)
             }
     
-    async def update_lead(self, lead_id: str, customer_data: Dict[str, Any], property_key: str) -> bool:
+    async def update_lead(self, lead_id: str, customer_data: Dict[str, Any], property_key: str) -> Dict[str, Any]:
         """
         Update an existing lead in Lasso CRM.
         
@@ -338,20 +378,20 @@ class LassoCRMService:
             property_key: Property identifier
             
         Returns:
-            True if successful, False otherwise
+            Dictionary with success status and details
         """
         # Get API key for this specific property
         api_key = self.get_property_api_key(property_key)
         if not api_key:
             logger.error(f"API key not configured for property {property_key}")
-            return False
+            return {"success": False, "error": "API key not configured", "details": f"No API key for property {property_key}"}
         
         try:
-            # Prepare updated lead data
-            lead_data = self.prepare_lead_data(customer_data, property_key)
+            # Prepare updated lead data with simple format for update
+            lead_data = self.prepare_simple_lead_data(customer_data)
             
-            # Lasso CRM API endpoint (update with actual endpoint)
-            endpoint = f"{self.base_url}/api/v1/leads/{lead_id}"
+            # Lasso CRM API endpoint for updating registrants
+            endpoint = f"{self.base_url}/v1/registrants/{lead_id}"
             
             headers = {
                 "Authorization": f"Bearer {api_key}",
@@ -368,16 +408,31 @@ class LassoCRMService:
                 )
                 
                 response.raise_for_status()
+                result = response.json()
                 logger.info(f"Successfully updated Lasso CRM lead {lead_id} for property {property_key}")
                 
-                return True
+                return {
+                    "success": True,
+                    "lead_id": lead_id,
+                    "response": result
+                }
                 
         except httpx.HTTPStatusError as e:
-            logger.error(f"Lasso CRM API error: {e.response.status_code} - {e.response.text}")
-            return False
+            error_msg = f"Lasso CRM API error: {e.response.status_code} - {e.response.text}"
+            logger.error(error_msg)
+            return {
+                "success": False,
+                "error": f"HTTP {e.response.status_code}",
+                "details": e.response.text
+            }
         except Exception as e:
-            logger.error(f"Error updating Lasso CRM lead: {e}")
-            return False
+            error_msg = f"Error updating Lasso CRM lead: {e}"
+            logger.error(error_msg)
+            return {
+                "success": False,
+                "error": "Unknown error",
+                "details": str(e)
+            }
     
     async def search_lead(self, phone: str, email: str = None, property_key: str = None) -> Optional[Dict[str, Any]]:
         """

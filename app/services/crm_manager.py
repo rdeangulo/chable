@@ -204,4 +204,54 @@ class CRMManager:
             "available_properties": self.get_available_properties(),
             "total_properties": len(self.get_available_properties())
         }
+    
+    async def update_lead_to_property(
+        self, 
+        crm_lead_id: str,
+        customer_data: Dict[str, Any], 
+        property_key: str
+    ) -> Dict[str, Any]:
+        """
+        Update existing lead in specified property in Lasso CRM.
+        
+        Args:
+            crm_lead_id: Existing CRM lead ID
+            customer_data: Updated customer information
+            property_key: Property identifier
+            
+        Returns:
+            Dict with results from Lasso CRM
+        """
+        results = {
+            "success": False,
+            "errors": [],
+            "lasso_result": None
+        }
+        
+        try:
+            if not self.lasso_enabled:
+                results["errors"].append("Lasso CRM not enabled")
+                return results
+            
+            if not self.lasso_service.validate_property_key(property_key):
+                results["errors"].append(f"Invalid property key: {property_key}")
+                return results
+            
+            # Update lead in Lasso CRM
+            lasso_result = await self.lasso_service.update_lead(crm_lead_id, customer_data, property_key)
+            
+            if lasso_result.get("success"):
+                results["success"] = True
+                results["lasso_result"] = lasso_result
+                logger.info(f"Successfully updated lead {crm_lead_id} to {property_key}")
+            else:
+                error_msg = lasso_result.get("error", "Unknown error")
+                results["errors"].append(f"Failed to update lead in Lasso CRM: {error_msg}")
+                
+        except Exception as e:
+            error_msg = f"Error updating lead to property {property_key}: {e}"
+            logger.error(error_msg)
+            results["errors"].append(error_msg)
+        
+        return results
 
