@@ -324,6 +324,22 @@ async def execute_function(tool_call, db: Session, sender_info=None):
             logger.error(f"Error executing get_contact_info: {e}")
             return "Lo siento, hubo un error al obtener la información de contacto."
 
+    elif function_name == "validate_and_extract_name":
+        try:
+            result = await validate_and_extract_name(db, function_arguments)
+            return result
+        except Exception as e:
+            logger.error(f"Error executing validate_and_extract_name: {e}")
+            return {"success": False, "error": "Error validating name", "name_data": {"full_name": "Cliente WhatsApp", "first_name": "Cliente", "last_name": "WhatsApp", "is_extracted": False, "is_fallback": True}}
+
+    elif function_name == "nurture_lead_progression":
+        try:
+            result = await nurture_lead_progression(db, function_arguments)
+            return result
+        except Exception as e:
+            logger.error(f"Error executing nurture_lead_progression: {e}")
+            return {"success": False, "error": "Error nurturing lead progression"}
+
     logger.warning(f"Función {function_name} no reconocida.")
     return "Función no reconocida"
 

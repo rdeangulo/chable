@@ -419,7 +419,7 @@ async def process_message(
                 # Add timeout to prevent long delays
                 @with_timeout(10)  # 10 second timeout
                 async def process_ai_message():
-                    return ai_handler.process_message(
+                    return await ai_handler.process_message(
                         debounced_message, 
                         model_speed="balanced", 
                         db=db, 
