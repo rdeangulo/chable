@@ -638,9 +638,11 @@ async def create_or_update_lead_immediately(db: Session, thread_record, message:
             conversation_history = []
             try:
                 thread_record = db.query(Thread).filter_by(sender=phone_number).first()
-                if thread_record and thread_record.conversation_data:
-                    conversation_data = json.loads(thread_record.conversation_data)
-                    conversation_history = [msg.get("content", "") for msg in conversation_data.get("messages", [])]
+                if thread_record:
+                    # Get conversation history from related messages
+                    from app.models import Message
+                    messages = db.query(Message).filter_by(thread_id=thread_record.id).order_by(Message.created_at).all()
+                    conversation_history = [msg.content for msg in messages if msg.content]
                     logger.info(f"📚 Retrieved {len(conversation_history)} messages from conversation history")
                 else:
                     logger.info(f"📚 No conversation history found for {phone_number}")
