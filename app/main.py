@@ -649,7 +649,7 @@ async def create_or_update_lead_immediately(db: Session, thread_record, message:
                     logger.info(f"Extracted name from message: {full_name}")
                     break
         
-        # Determine property interest from message
+        # Determine property interest from message (optional for initial creation)
         property_interest = ""
         message_lower = message.lower()
         logger.info(f"Analyzing message for property interest: '{message[:100]}...'")
@@ -676,6 +676,11 @@ async def create_or_update_lead_immediately(db: Session, thread_record, message:
         
         logger.info(f"Determined lead rating: {lead_rating}")
         
+        # Create lead immediately if we have name and phone (property interest is optional)
+        if not full_name and not profile_name:
+            logger.warning("No name available for lead creation, using phone number as identifier")
+            full_name = f"Cliente {phone_number[-4:]}"  # Use last 4 digits as fallback
+        
         # Check if customer already exists
         existing_customer = db.query(CustomerInfo).filter_by(telefono=phone_number).first()
         
@@ -701,10 +706,15 @@ async def create_or_update_lead_immediately(db: Session, thread_record, message:
             customer = existing_customer
         
         # Check if qualified lead already exists
-        existing_lead = db.query(QualifiedLead).filter_by(telefono=phone_number).first()
+        try:
+            existing_lead = db.query(QualifiedLead).filter_by(telefono=phone_number).first()
+        except Exception as e:
+            logger.error(f"Database query error: {e}")
+            # Try to create lead without lead_rating column
+            existing_lead = None
         
         if not existing_lead:
-            # Create new qualified lead
+            # Create new qualified lead (without lead_rating for now)
             lead = QualifiedLead(
                 customer_info_id=customer.id,
                 nombre=full_name,
@@ -716,7 +726,6 @@ async def create_or_update_lead_immediately(db: Session, thread_record, message:
                 motivo_interes="interes_inicial",
                 urgencia_compra="sin_urgencia",
                 desea_informacion=True,
-                lead_rating=lead_rating,
                 conversation_summary=f"Lead creado automáticamente - Rating: {lead_rating}"
             )
             db.add(lead)
@@ -731,15 +740,9 @@ async def create_or_update_lead_immediately(db: Session, thread_record, message:
                 existing_lead.proyecto_interes = property_interest
                 existing_lead.ciudad_interes = property_interest
             
-            # Update rating if it's higher
-            rating_hierarchy = {"initial": 1, "warm": 2, "hot": 3}
-            current_rating_level = rating_hierarchy.get(existing_lead.lead_rating, 1)
-            new_rating_level = rating_hierarchy.get(lead_rating, 1)
-            
-            if new_rating_level > current_rating_level:
-                existing_lead.lead_rating = lead_rating
-                existing_lead.conversation_summary = f"Lead actualizado - Rating: {lead_rating}"
-                logger.info(f"Updated lead {existing_lead.id} rating from {existing_lead.lead_rating} to {lead_rating}")
+            # Update conversation summary with rating info
+            existing_lead.conversation_summary = f"Lead actualizado - Rating: {lead_rating}"
+            logger.info(f"Updated lead {existing_lead.id} with rating: {lead_rating}")
             
             db.commit()
             lead = existing_lead
