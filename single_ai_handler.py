@@ -405,9 +405,9 @@ class SingleAIHandler:
                 messages=messages,
                 tools=self.functions,
                 tool_choice="auto",
-                max_tokens=800,  # Reduced for speed
-                temperature=0.3,  # Lower for faster, more consistent responses
-                timeout=1.5  # 1.5 second timeout
+                max_tokens=600,  # Further reduced for speed
+                temperature=0.2,  # Even lower for faster responses
+                timeout=1.0  # 1 second timeout
             )
             
             # Check if functions were called

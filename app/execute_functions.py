@@ -1561,6 +1561,19 @@ async def nurture_lead_progression(db: Session, data: Dict[str, Any]) -> Dict[st
         elif lead_progression == "hot":
             nurturing_actions = ["Immediate contact", "Schedule urgent meeting", "Provide direct contact info"]
         
+        # Inject to Lasso CRM if lead is warm or hot
+        if lead_progression in ["warm", "hot"]:
+            try:
+                from app.crm_integration import inject_qualified_lead_to_crm
+                crm_result = await inject_qualified_lead_to_crm(db, lead)
+                
+                if crm_result.get("success"):
+                    logger.info(f"✅ Successfully injected lead {lead.id} to Lasso CRM")
+                else:
+                    logger.error(f"❌ Failed to inject lead {lead.id} to Lasso CRM: {crm_result.get('errors')}")
+            except Exception as e:
+                logger.error(f"❌ Error injecting lead to Lasso CRM: {e}")
+        
         logger.info(f"🌱 Lead nurturing completed - Level: {lead_progression}, Actions: {nurturing_actions}")
         
         return {
